@@ -1,0 +1,1980 @@
+\documentclass[10pt]{article}
+
+\usepackage{a4wide}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{multicol}
+\usepackage{float}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+
+\bibliographystyle{unsrt}
+\graphicspath{{eps/}}
+
+\renewcommand{\labelenumi}{\theenumi)}
+
+\theoremstyle{definition}
+\newtheorem{defin}{Определение}
+\theoremstyle{remark}
+\newtheorem{rmk}{Замечание}
+\theoremstyle{plain}
+\newtheorem{thm}{Теорема}
+\newtheorem{stt}{Утверждение}
+\newtheorem{lem}{Лемма}
+\newtheorem{crl}{Следствие}
+
+\newcommand{\wt}{\widetilde}
+\newcommand{\diag}{\mathrm{diag}}
+\newcommand{\Var}{\mathbb{V}\mathrm{ar}}
+\newcommand{\w}{f_\infty}
+\newcommand{\scalar}[2]{\left<#1,#2\right>}
+\newcommand{\ToDo}[1]{\textbf{ToDo:}{\it#1}\par}
+
+\begin{document}
+
+
+
+
+
+\section{Description of the Smith--Wilson method}
+Определим основные понятия, которые мы будем использовать в данной работе. Для этого коротко повторим теорию, предложенную в документации EIOPA\cite[гл. 15]{TechDocEIOPA}. Определим срочную структуру процентных ставок при помощи трех связанных понятий. Так коэффициент дисконтирования $D(t)$ со временем исполнения $t$ связан с доходностью $y(t)$ и мгновенной форвардной ставкой $f(t)$ через соотношения:
+\begin{align*}
+D(t) = 
+\exp\left\{
+	- t \cdot y(t)
+	\right\}
+=
+\exp\Bigl\{
+	- \int\limits_0^t f(\tau)\,d\tau
+	\Bigr\}
+.
+\end{align*}
+Теперь определим основной объект в методе --- функцию Уилсона:
+\begin{align}
+W(u,v) &= e^{-f_\infty (u+v)}H(u,v)\\
+&= e^{-\w u}H(u,v)e^{-\w v},
+\end{align}
+где $H(u,v)$ --- ядро функции Уилсона:
+\begin{align}
+H(u,v) = \alpha \min(u,v) - e^{-\alpha\max(u,v)}\cdot \sinh(\alpha\min(u,v)),
+\end{align}
+Here $\alpha$ and $\w$ are parameters that have a dimension reciprocal to that of the time duration to maturity $u$ and $v$ that we take the year.
+The parameter $\w$ denotes the ultimate forward intensity. The parameter $\alpha$ controls the speed of convergence to this asymptotic level.
+
+Введенные определения даны для скалярных переменных $u,v$. В  общем же случае, когда $u,v$ являются векторами размера $n$ и $m$ соответственно, ядро функции Уилсона определяется как матрица:
+$$
+H(u,v) = 
+\begin{pmatrix}
+H(u_1,v_1)& H(u_1,v_2) &\ldots & H(u_1,v_m)\\
+H(u_2,v_1)& H(u_2,v_2) &\ldots & H(u_2,v_m)\\
+\vdots& \vdots &\ddots & \vdots\\
+H(u_n,v_1)& H(u_n,v_2) &\ldots & H(u_n,v_m)
+\end{pmatrix}
+$$
+%\begin{align*}
+%H(u, v) &= \left\| H(u_i,v_j)\right\| \\
+%W(u, v) &= \left\| W(u_i,v_j)\right\|
+%\end{align*}
+Заметим, что для любых значений вектора $u$, компоненты которого попарно различны, матрица $H(u,u)$ всегда является положительно определенной.
+ %Более подробно о выборе и о значении данных констант говориться ниже. 
+
+
+This H-function and its first two derivatives happen to be continuous at $v=u$. 
+
+Differentiation with respect to $v$ gives:
+\begin{align}
+\frac{dH(u,v)}{dv} = G(u,v) =
+\left\{
+	\begin{aligned}
+	\alpha - \alpha	e^{-\alpha u} \cosh(\alpha v)&\quad v\leqslant u \\
+	\alpha e^{-\alpha v}\sinh(\alpha u) &\quad u\leqslant v
+	\end{aligned}
+\right.
+\end{align}
+For the second order derivative we have:
+\begin{align}
+\frac{d^2H(u,v)}{dv^2} =\alpha^2 H(u,v) - \alpha^3\min(u,v)
+\end{align}
+However, the third derivative shows a discontinuity at $u=v$.
+
+We introduce a vector $u$ for the $m$ observed durations to maturity as well as an $m\times n$ cash-flow matrix $C$ that may contain zeros. Vector $p$ contains the $n$ observed market prices for the $n$ financial instruments that will be contrasted with the $m$ components of the present values in $D(u)$. 
+
+Without loss of generality we may order the rows of this tableau according to the
+components of $u$ such that there holds $u_1< u_2< \ldots <u_m $. Likewise the columns of
+this tableau can be ordered such that $C$ will be as upper-triangular as possible.
+Such a canonical format will be useful for validation purposes but is not of any
+importance for the mathematical formulations.
+
+%Also we introduce a vector $d = \exp[-\w u]$, matrix $D = \diag(d)$ and auxiliary vector $q = C^*d$, matrix $Q = DC$. 
+Пусть нам известны матрица выплат $C$, вектор цен $p$ и вектор сроков выплат $u$. Определим вспомогательную переменную
+$$
+d = \exp[-\omega u] \in \mathbb{R}^m
+$$
+Согласно методу SW функция дисконтирования $D(\cdot)$ ищется в виде
+\begin{align}
+\begin{aligned}
+D(t) &= e^{-\omega t} + W(t,u)Cb \\
+&= e^{-\omega t} + e^{-\omega t} H(t,u)Qb, 
+\end{aligned}\label{discont}
+\end{align}
+где $$Q = \mathrm{diag}(d) C = D C.$$ 
+Везде далее в качестве обозначения диагональной матрицы от произвольного вектора $a$ мы примем $\diag(a).$
+
+В постановке \eqref{discont} вектор $b\in \mathbb{R}^n$ неизвестен. Для его нахождения предлогается подставить вместо переменной $t$ вектор $u$:
+\begin{align*}
+D(u) = d + W(u,u)Cb. 
+\end{align*}
+В дальнейшем будем обозначать матрицу $H(u,u)$ и $W(u,u)$ в виде $H$ и $W$ без аргументов. При этом данные матрицы связаны соотношением $W=DHD$.
+Приняв $q = C^* d$, домножим обе части равенства на $C^*$ --- транспонированную матрицу $C$ и получим 
+\begin{align*}
+C^*D(u)&= C^*d+C^*WCb\\
+&= q+C^*WCb
+\end{align*}
+Левая часть равенства $C^* D(u)$ может быть заменена на цены $p$. Воспользовавшись невырожденностью $C^*WC$ находим неизвестный вектор $b$
+\begin{align}
+b = (C^*WC)^{-1}(p-q). \label{bVec}
+\end{align}
+Откуда получаем явный вид функции дисконтирования
+\begin{align*}
+D(t) = e^{-\omega t} + W(t,u)C(C^*WC)^{-1}(p-q)
+\end{align*}
+Для упрощения дальнейшего изложения выразим $D(t)$ через ядро $H$
+\begin{align*}
+D(t) 
+&= e^{-\omega t} + e^{-\omega t} H(t,u)DC\left(C^*WC\right)^{-1}(p-q)\\
+&= e^{-\omega t}\left(1+ H(t,u)Qb\right)
+\end{align*}
+
+%&= 
+%e^{-\omega t}\left(1 + \scalar{\mathbf{h} (t)}{\mathbf{p-q}} \right),
+%
+%где 
+%\begin{gather}
+%{\mathbf h}'(t) = \mathbf{H}(t,\mathbf{u})\mathbf{Q}\left(\mathbf{Q}'\mathbf{H(u,u)}\mathbf{Q}\right)^{-1}.
+%\end{gather}
+Для нахождения мгновенной форвардной ставки продифференцируем логарифм функции дисконтирования.
+\begin{align*}
+	\begin{aligned}
+	f(t) &= -\frac{d}{dt}\ln
+	\left( e^{-\omega t}\left(1 + H(t,u)Qb\right) \right) 
+	\\
+	&= \omega - \frac{d}{dt}\ln\left(1 + H(t,u)Qb\right)
+	\\
+	&= \omega - \frac{G(t,u)Qb}{1 + H(t,u)Qb}	
+	\end{aligned}
+\end{align*}
+Значение доходности легко находится из
+\begin{align*}
+y(t) &= - \frac{1}{t}\ln\left(
+		e^{-\omega t}\left(1 + H(t,u)Qb\right)
+	\right)\\
+	&= \omega - \frac{1}{t}\ln\left(1 + H(t,u)Qb\right)
+\end{align*}
+
+Согласно методике, предложенной EIOPA, в последней точке ликвидности $t_{LLP} = \max(u)$ берет начало период сходимости. Его длина составляет $\max(40,60-t_{LLP})$. Таким образом в точке сходимости $t_{CP} = t_{LLP}+\max(40,60-t_{LLP})$ данный период заканчивается. We view the gap of the forward intensity function at the point of convergence $t_{CP}$ as a function of $\alpha$: 
+\begin{align*}
+g[t_{CP}] = g(\alpha,t_{CP}) = \w - f(t_{CP}),
+\end{align*}
+and formulate the problem of determining $\alpha$ as a nonlinear minimization problem:
+
+Minimize $\alpha$ with respect to $\alpha$ subject to the two inequality conditions\footnote{ 
+Итак предлагается искать минимальное $\alpha$, при котором форвардная ставка в точке сходимости $t_{CP}$ будет находится на расстоянии $\delta$ от предельного значения $\w$. При этом если полученное значение $\alpha$ меньше порогового $0.05$, то принимается $\alpha = 0.05$. Никакой мотивации этого предельного значения $0.05$ нет и быть не может. Оно взято с потолка и предназначено для того, чтобы не получить проблему с отрицательной функцией дисконтирования. Об этом более подробно я написал ниже.}\footnote{Замечание: в ПОСЛЕДНЕЙ документации от 19.06.2015 ни слова не сказано о значении $\delta$. В предыдущих версиях явно указывалось $\delta = 0.0001$}:
+\begin{gather}
+\alpha\geqslant 0.05\\
+|g(\alpha,t_{CP})|\leqslant \delta
+\end{gather}
+ 
+
+
+
+\subsection{Fitting the term structure to bond prices and swap rates}
+
+With the Smith--Wilson technique the term structure can be fitted to all the
+different financial instruments that may be eligible as basis for assessing the
+risk-free interest rate curve.
+
+Each set of instruments that is taken as input, is defined by:
+\begin{itemize}
+\item vector of the market prices of $n$ instruments at valuation date
+\item vector of the $m$ different cash payment dates up to the last maturity, and
+\item $m\times n$ matrix of the cash--flows on the instruments at these dates.
+\end{itemize}
+
+We will now look at this input when the term structure is fitted to zero coupon
+bond rates, coupon bond rates and par swap rates.
+
+\begin{tabular}{|p{1.7cm}|p{4cm}|p{3cm}|p{4cm}|}
+\hline
+Instruments & Market prices $p$ & Cash payment dates $u$  & Cash-flow matrix $C$ \\
+\hline
+zero coupon bonds 
+& 
+Market prices of the $n$ input instruments, given as the percent amount of the notional amount.
+
+The market prices of the zero coupon input bonds translate at once into spot rates for input maturities
+& 
+The cash payment dates are the maturity dates of the $n$ zero coupon input bonds (i.e.$m=n$)
+& 
+An $n\times n$ matrix with entries:
+\begin{align*}
+c_{i,j} = 1 \text{ for } i=j \\
+c_{i,j} = 0 \text{ for } i\neq j 
+\end{align*}
+\\
+\hline
+coupon bonds
+&
+Market prices of the $n$ coupon input bonds, given as the percent amount of the notional amount of the bond.
+&
+The cash payment dates are, in addition to the maturity dates of the input bonds all coupon dates.
+&
+An $m\times n$ matrix with entries:
+\begin{align*}
+c_{i,j} = r_i/s \text{ for } j<t_i \\
+c_{i,t_i} = 1+ r_i/s  \\
+c_{i,j} = 0 \text{ for } j>t_i
+\end{align*}
+where $r_i$ is the coupon rate of $i$~th bond, and $s$ is the settlement frequency
+\\
+\hline
+par swap rates
+&
+The market prices of the $n$ par swap input instruments are taken as unit (i.e. $1$).
+
+To receive the swap rate, a floating rate has to be earned, that can be swapped against the fixed rate. To earn the variable rate a notional amount has to be invested. At maturity, the notional amount is deinvested.
+&
+The cash payment dates are, in addition to the maturity dates of the swap agreements all swap rate payment dates.
+&
+An $m\times n$ matrix with entries:
+\begin{align*}
+c_{i,j} = r_i/s \text{ for } j<t_i \\
+c_{i,t_i} = 1+ r_i/s  \\
+c_{i,j} = 0 \text{ for } j>t_i
+\end{align*}
+where $r_i$ is the swap rate of agreement $i$, and $s$ is the settlement frequency.
+\\
+\hline
+\end{tabular}
+
+В терминах линейной алгебры матрицы $C$ может быть представленная в виде
+$$
+C = 
+\begin{pmatrix}
+r_1/s& r_2/s &\ldots & r_n/s\\
+\vdots& \vdots &\ddots & \vdots\\
+1+r_1/s& r_2/s &\ldots & r_n/s\\
+0& r_2/s &\ldots & r_n/s\\
+\vdots& \vdots &\ddots & \vdots\\
+0& 1+r_2/s &\ldots & r_n/s\\
+0& 0 &\ldots & r_n/s \\
+\vdots& \vdots &\ddots & \vdots\\
+0& 0 &\ldots & 1+r_n/s
+\end{pmatrix}
+=
+\begin{pmatrix}
+0& 0 &\ldots & 0\\
+\vdots& \vdots &\ddots & \vdots\\
+1& 0 &\ldots & 0\\
+\vdots& \vdots &\ddots & \vdots\\
+0& 1 &\ldots & 0\\
+\vdots& \vdots &\ddots & \vdots\\
+0& 0 &\ldots & 1
+\end{pmatrix}
++
+\begin{pmatrix}
+1& 1 &\ldots & 1\\
+\vdots& \vdots &\ddots & \vdots\\
+1& 1 &\ldots & 1\\
+\vdots& \vdots &\ddots & \vdots\\
+0& 1 &\ldots & 1\\
+\vdots& \vdots &\ddots & \vdots\\
+0& 0 &\ldots & 1
+\end{pmatrix}
+\cdot\diag(r)
+$$
+Более коротко
+\begin{align}
+C = E+U\diag(r),
+\end{align}
+где в общем случае матрицы $E$ и $U$ могут быть прямоугольными.
+
+Далее нами будет рассмотрено все три вида инструментов. Первый из них является частным случаем второго, поэтому фактически рассматриваются два вида. Зачастую анализ будет проводиться параллельно, поэтому нам потребуется некоторое общее обозначение $\pi$ вектора цен на инструменты. Так в случае облигаций переменной является $\pi\equiv p$, а матрицы выплат $C$ фиксирована. В случае свопов $\pi \equiv r$, а значит матрица $C = C(r) = E+U\diag(r)$ зависима. При этом вектор $p$ фиксированным и является единичным.
+
+\subsection{Параметры модели}
+Согласно методике, предложенной EIOPA, параметр $\w$ фиксирован и равен $\log(1.042)$, что соответствует $4.2\%$ в годовом измерении. Вопрос выбора $\w$ носит макроэкономический характер, и его обсуждение не является целью настоящей работы. Стоит отметить, что существует модель, согласно которой данный показатель ищется как наиболее гладкое продолжение имеющейся структуры. Мы с осторожностью подходим к таким рассуждениям. 
+Во-первых, данный показатель должен как можно в меньшей степени зависеть от рыночных цен. Во-вторых,  несостоятельна сама идея гладкого продолжения кривой, чья форма крайне неустойчива в точках, близких к $t_{LLP}$. Данный подход может иметь развитие лишь с учетом  априорного значения $\w$ и с использованием нашей модели для получения более устойчивых кривых.
+
+Что касается второго параметра модели $\alpha$, то метод его определения вызывает куда больше вопросов. Во-первых, фиксирование границ в точке сходимости $t_{CP}$ для разности $g[t_{CP}] = \w-f(t_{CP})$ ни чем не мотивируется\marginpar{проверить}. Вероятно такой выбор продиктован желанием успокоить колебания форвардной кривой вне интервала ликвидности. Иной мотивации у данного решения нет. Само значение $\delta = 1bp$ так же не может иметь интерпретации. 
+
+С другой стороны идея использования отклонения в точке $t_{CP}$ форвардной кривой от предельного значения может быть развита.  Рассмотрим формулу, предложенную в \cite{Lager}
+\begin{align}
+g[t] = g[\tau]\frac{e^{-\alpha(t-\tau)}}{1+g[\tau]\frac{1 - e^{-\alpha(t-\tau)}}{\alpha}}; \quad t>\tau\geqslant t_{LLP}, \label{forward_lager}
+\end{align} 
+которая описывает форму построенной по методу SW форвардной кривой за пределами интервала ликвидности. Формула была получена в более общих предположениях, считая что поток платежей распределен не дискретно, но она также остается справедлива и в нашем случае. Положим $$\tau := t_{LLP}; \quad t := t_{CP}$$ и заметим, что искомая разность $g[t_{LLP}]$ пропорциональна $g[t_{CP}]$. Коэффициент пропорциональности близок к $\exp(-\alpha(t_{LLP} - t_{CP})$, так как значение знаменателя мало отличается от единицы. 
+ %Несомненно, само значение $g(\tau)$ зависит от $\alpha$, но эта зависимость настолько незначительна, что ею можно пренебречь. 
+ Наше предложение заключается в отказе от жесткого ограничения  $|g[t_{CP}]|\leqslant\delta$. Мы считаем, что ограничение на  $g[t_{CP}] $ должно быть пропорционально $g[t_{LLP}] = \w-f(t_{LLP})$. Поясним это на примере. Пусть в точке $t_{LLP}$ некоторая форвардная кривая далека от своего предельного значения и ее отклонение равно $300bp$. Пусть имеется вторая кривая с малым отклонением в $30bp$. Очевидно, что от первой кривой наивно ожидать сходимость в точке $t_{CP}$ к предельному значению на ту же величину, что и у второй кривой. Более разумно предположить, что точке сходимости их отклонения будут пропорциональны начальным отклонениям в $t_{LLP}$. Если мы требуем от второй кривой сойтись на расстояние не больше $1bp$, то для первой это ограничение должно быть пропорционально и иметь размер порядка $10bp$. Рассуждая о пропорциональности в отклонении, мы приходим к идее о фиксации коэффициента пропорциональности $\exp(-\alpha(t - \tau))$, а значит и самого $\alpha$. 
+ 
+ Предложение о выборе фиксированного $\alpha$ уже было высказано Thomas \& Mare и рассматривалась в работе [??]. Их решение имело другую мотивацию и было сделано ради упрощения анализа метода. Конкретное значение $\alpha=0.1$ выбиралось на основании анализа используемых ими данных. Изучение предложенного Thomas \& Mare значения, а также построение другого $\alpha$ требует отдельного разбора. Впрочем, идея выбрать любое разумное $\alpha$ ничем не уступает идее EIOPA выбора $1bp$ в качестве границы для отклонения форвардной кривой. 
+
+Возвращаясь к предложенному EIOPA методу определения $\alpha$, снова рассмотрим \eqref{forward_lager} и перейдем для краткости к обозначениям $t$ и $\tau$ вместо $t_{CP}$ и $t_{LLP}$ соответственно.  В документации предлагается искать такое $\alpha$ что $|g(\alpha,t)| = \delta$. Выразим это условие через $g(\alpha,\tau) = g[\tau]$
+\begin{align}
+\delta = |g[\tau]|\frac{e^{-\alpha(t-\tau)}}{1+g[\tau]\frac{1 - e^{-\alpha(t-\tau)}}{\alpha}}; \label{forward_tau}
+\end{align} 
+В работе \cite{Lager}, где была представлена формула \eqref{forward_lager}, утверждалось, что из уравнения \eqref{forward_tau} можно явно выразить искомое $\alpha$. Однако это сильное утверждение мы вынуждены опровергнуть. Во-первых, относительно $\alpha$ уравнение является трансцендентным. Во-вторых, значение $g(\alpha,\tau) = g[\tau]$ также зависит от $\alpha$. Данная зависимость является слабой, но это не означает, что ее не стоит учитывать\footnote{В оправдание второго замечания можно отметить, что Lageras рассматривает случай с непрерывными выплатами, где скорее всего форвардная кривая не зависит от $\alpha$ на интервале ликвидности.}. 
+
+С другой стороны уравнение \eqref{forward_tau} чрезвычайно полезно для нахождения численного решения. 
+Возьмем логарифм от обеих частей
+\begin{align}
+0 = \log\frac{|g[\tau]|}{\delta} 
+- \alpha(t-\tau) - 
+\log\left(1 + g[\tau]\frac{1 - e^{-\alpha(t-\tau)}}{\alpha}\right) \label{log_alpha_fnd}
+\end{align}
+и будем численно искать корень данного уравнения. Для простоты будем считать, что крайний логарифм близок к нулю, а значение $g[\tau]$ не зависит от $\alpha$. В этом случае производная от правой части уравнения равна $-(t-\tau)$. Полученное приблизительное значение производной вполне подходит для использования модифицированного метода Ньютона. Так итерационный метод нахождения решения имеет вид
+\begin{align}
+\alpha_n = \alpha_{n-1} - \frac{\log(g(\alpha_{n-1},t)) - \log(\delta)}{-(t-\tau)}\label{alpha_iter}
+\end{align}
+Более точные формулы возможно получить, если исходную задачу \eqref{log_alpha_fnd} приблизить
+\begin{align*}
+0 = \log\frac{|g[\tau]|}{\delta} 
+- \alpha(t-\tau) - g[\tau]\frac{1 - e^{-\alpha(t-\tau)}}{\alpha},
+\end{align*}
+и найти производную в предположении, что $g[\tau]$ фиксировано. В этом случае формулы незначительно усложнятся
+\begin{align*}
+\alpha_n = \alpha_{n-1} - \left[\log(g(\alpha_{n-1},t)) - 
+\log(\delta)\right]	\big/
+\left[-(t-\tau) + g(\alpha_{n-1},\tau)\frac{1-(1+\alpha(t-\tau))e^{-\alpha(t-\tau)}}{\alpha^2}\right]
+\end{align*}
+Помимо вычислений значения $g[t]$ предложенная схема требует вычисления $g[\tau]$. Поскольку на практике вполне достаточно \eqref{alpha_iter}, мы рекомендуем использовать именно этот метод. Также может быть применен метод секущих. Опасность для такого рода алгоритма представляет случаи, когда $g[\tau]$ близко к нулю. 
+
+Перейдем к последнему замечанию о параметре $\alpha$. При внимательном рассмотрении выражения \eqref{forward_lager} можно заметить, что знаменатель вообще говоря не обязан быть строго положительным. Его нулевое значение может быть получено лишь при $g[\tau]/\alpha<-1$ и достаточно больших $t$. Именно поэтому во многих работах отмечалось наличие проблем у метода если $\w - f(t_{LLP})\leqslant -\alpha$. Вероятно, чтобы избежать такого сценария в EIOPA предложили ограничить снизу значение $\alpha$ константой $0.05$. Возможно есть и другое объяснение данного выбора.
+\newpage
+
+\section{Justification of the Smith-Wilson method}
+Рассмотрим следующий функционал, взятый за основу в работе Smith \& Wilson\footnote{
+В общем случае в определении функционала вместо $e^{-\w t}$ рассматривалась произвольная функция дисконтирования. Мы изначально уходим от рассмотрения подобных обобщений, поскольку это приведет к значительному усложнению модели и отказу от стремления форвардной кривой к $\w$.
+}
+\begin{align}
+J_{SW}[D(\cdot)] = 
+		\frac{1}{\alpha^3}
+		\int\limits_0^\infty 
+		\Bigl(
+			\frac{d^2}{dt^2}
+			\left\{
+				e^{\w t} D(t)
+			\right\}
+		\Bigr)^2
+		\, dt
+		+
+		\frac{1}{\alpha}
+		\int\limits_0^\infty 
+		\Bigl(
+			\frac{d}{dt}
+			\left\{
+				e^{\w t} D(t)
+			\right\}
+		\Bigr)^2
+		\, dt \label{J_SW_def}
+\end{align}
+Так любую функцию $D(t)$, удовлетворяющую условиям $D(0) = 1$ и $J_{SW}\left[D(\cdot)\right]<\infty$, будем называть функцией дисконтирования. Естественными требованиями к $D(t)$ являются положительность и монотонное убывание, однако в данной постановке этими условиями мы пренебрежем, так как этот вопрос в большей степени относится к используемым данным. 
+
+Предлагается искать функцию дисконтирования, которая минимизирует \eqref{J_SW_def} и согласуется с данными модели. Формально это может быть записано в виде
+\begin{align}
+\min\limits_{D(\cdot)}
+\left\{
+	\left.
+ 		J_{SW}\left[D(\cdot)\right]\;
+	\right|
+	p = C^*D(u) 
+\right\}, \label{Smooth_begin}
+\end{align}
+
+Для решения этой задачи перейдем к более общей постановки. Пусть известна некоторая функция дисконтирования $\wt{D}$. Необходимо построить новую $D$, удовлетворявшей условию согласованности с данными $p = C^*D(u)$ и такую, что разность $P = D-\wt{D}$ минимизурует $J_{SW}[P(\cdot)].$ 
+При этом функция $P(t)$ будет удовлетворять двум условиям. Во-первых, $P(0) = 0$ как разность двух функций дисконтирования. Во-вторых, она должна быть согласованна с данными. Так, обозначив $\tilde{p} = C^*\wt{D}(u)$, запишем общую постановку относительно $P(t)$
+\begin{align}
+\min\limits_{P(\cdot)}
+\left\{
+	J_{SW}\left[P(\cdot)\right]
+	\Big|
+	p - \tilde{p} = C^*P(u)
+\right\}, \label{SW_general}
+\end{align}
+Согласно результатам, полученным в работе SW, решением поставленной задачи является\footnote{
+Можно доказать, что $J_{SW}(P)$ есть скалярное произведение $\scalar{P}{P}$ в гильбертовом пространстве функций с $P(0) = 0$. А предложенное решение задачи есть не что иное, как элемент с минимальной нормой из линейного многообразии $\mathcal{L}:C^*P(u) = p-\tilde{p}.$
+}
+\begin{align}
+P(t) = W(t,u)C\beta, \label{P_t_explic}
+\end{align}
+где вектор $\beta$ может быть найден из условия согласованности цен. Домножив слева уравнение \eqref{P_t_explic} на матрицу $C^*$, получим вектор $\beta$ как решение линейного уравнения
+\begin{align}
+(C^*WC)\beta = (p-\tilde{p}). \label{beta_begin}
+\end{align}
+Таким образом искомая функция дисконтирования имеет вид
+\begin{align}
+D(t) = \wt{D}(t) + W(t,u)C\beta. \label{discout_begin}
+\end{align}
+Само минимальное значение функционала равно 
+\begin{align*}
+\min\limits_{P(\cdot)}
+\left\{
+	J_{SW}[P(\cdot)]
+	\Big|
+	p - \tilde{p} = C^*P(u)
+\right\}
+= \scalar{C\beta}{WC\beta}
+\end{align*}
+Для получения решения исходной задачи \eqref{Smooth_begin} положим $\wt{D}(t) = e^{-\w t}$. Важно отметить, что при таком выборе $\wt{D}$ исходная задача \eqref{Smooth_begin} полностью совпадает с общей \eqref{SW_general}. В результате данной подстановки получаем $\tilde{p} = C^*d \equiv q$. Тогда вектор $\beta = b$ определяются из \eqref{beta_begin}, а искомая функция дисконтирования имеет вид \eqref{discout_begin}, что естественно совпадает с   формулами, описанными в предыдущей главе.
+
+Выбор функционала $J_{SW}[\cdot]$ нуждается в пояснении.
+Согласно \cite{Smith_Wilson} первое слагаемое отвечает за гладкость функции дисконтирования, а второе --- за сходимость мгновенной форвардной ставки к $\w$. Это становится очевидным, если учесть близость к единице произведения~$e^{\w t} D(t)$. Так
+\begin{align}
+f(t) &= - \frac{d}{dt} \log\bigl(D(t)\bigr)
+	 = - \frac{d}{dt} \log\left(e^{-\w t}\right) - \frac{d}{dt} \log\left(e^{\w t} D(t)\right) \notag\\
+	 &\approx \w - \frac{d}{dt} \left\{e^{\w t} D(t)-1\right\}
+	 = \w - \frac{d}{dt}\left\{e^{\w t} D(t)\right\} \label{f_prox}
+\end{align} 
+В данном предположении \eqref{Smooth_begin} примет вид
+\begin{align*}
+\min\limits_{D(\cdot)}
+\left\{
+	\frac{1}{\alpha^3}
+	\int\limits_0^\infty 
+		\Bigl(
+			\frac{d}{dt}
+			f(t)
+		\Bigr)^2
+		\, dt
+		+
+	\frac{1}{\alpha}
+	\int\limits_0^\infty 
+		\Bigl(
+			\w - f(t)
+		\Bigr)^2
+		\, dt \;
+	\bigg|
+	p = C^*D(u),
+\right\}
+\end{align*}
+что позволяет лучше понять выбор функционала, предложенного Смитом и Уилсоном. 
+
+Важно отметить, что в данной формулировке $\alpha$ выступает в роли параметра регуляризации, отвечающим за баланс между гладкостью форвардной ставки и ее скоростью сходимости к предельному значению. Это означает, что большее значение этого параметра соответствует большей скорости сходимости, и наоборот, его меньшее значение соответствует большей гладкости\footnote{Во многом этим объясняется выбор EIOPA наименьшего $\alpha$, удовлетворяющего требованиям сходимости}. Таким образом $\alpha$ имеет двойное значение. Это несет определенные трудности при его определении, когда необходимо установить баланс между гладкостью и сходимостью. 
+%
+%Одним из ключевых моментов является тот факт, что задача \eqref{Smooth_begin} достигает минимума на функции дисконтирования \eqref{discount}. При этом само минимальное значение функционала $J_{SW}$ равно 
+%\begin{align}
+%\min\limits_{D(\cdot)}
+%\left\{
+%	\left.
+% 		J_{SW}\left[D(\cdot)\right]\;
+%	\right|
+%	p = C^*D(u) 
+%\right\}
+%% = \scalar{Qb}{HQb} = \|Qb\|^2_H \label{smooth_optimal}
+%= \scalar{Qb}{HQb} = \|Q\left(Q^*HQ\right)(p-q)\|^2_H \label{smooth_optimal}
+%\end{align}
+%Данное утверждение доказано в Appendix ? и пригодится нам в последующих рассуждениях. 
+
+Перейдем к рассмотрению другого подхода, позволяющего получить тот же вид функции дисконтирования.  
+В работе \cite{Andersson_Lindholm} говориться: <<In the report <<Risk-Free Interest Rates - Extrapolation Method>>
+published by EIOPA it is stated on p. 13 that the so-called W-functions
+of the Smith-Wilson extra/interpolation method can be interpreted
+as covariances to an integrated Ornstein-Uhlenbeck yield curve model.
+The authors have not seen a formal motivation of this fact, hence they
+have investigated under what assumptions that the statement is valid.
+In the present note it is concluded that the statement is true given that
+the underlying O-U process is scaled, has a certain parametrisation and
+a stochastic starting point with a certain expected value and variance.
+Moreover, the entire extra/ interpolation method can be interpreted
+as the conditional expectation of a simple yield curve model driven by
+an integrated O-U process. The proposed method does not rely on an
+explicit O-U process assumption, but rather applies to a wider class of
+Gaussian processes.>> Важно ответить, что << this note provides \textit{one} stochastic model which generates the Smith-Wilson method>>. Так же <<In the above we have considered only zero coupon bond prices as input, but
+it is straightforward to generalise the method to the situation with coupon
+paying bonds>>.
+
+Идея Lindholm \& Andersson была развита в статье \cite[App. B]{Lager}, где Laregas доказывает
+\begin{thm}
+Let $X$ be a Gaussian Ornstein-Uhlenbeck process with stochastic differential $dX = -\alpha X\,dt + \alpha^{3/2}\, dB$ and initial value $X_0 \thicksim N(0; \alpha^2)$
+independent of standardised Brownian motion $B$; $dY := X \,dt$; and $Z:= e^{-\w t}(1 + Y)$. Then
+$$
+D(t) = \mathbb{E}(Z(t)|Z(t_i) = D(t_i);i=1,\ldots,N)
+$$
+\end{thm}
+Note that the Ornstein-Uhlenbeck process in the theorem is not stationary;
+for stationarity $X_0$ should be $N(0;\alpha^2 /2)$
+\footnote{
+На основе этого представления функции дисконтирования мною рассматривается вариант построения дикретного  фильтра Калмана--Бьюсси системы:
+\begin{align*}
+dX &= -\alpha X\,dt + \alpha^{3/2}\, dB_1 \\
+dY &= X\,dt + \beta(t) \,dB_2
+\end{align*}
+При известных значениях $Y(t_i)$, таких что $e^{-f_\infty t_i}(1+Y(t_i)) = D(t_i)$. При этом от вида функции $\beta(t)$ мы скорее всего получим формулы схожие с теми, что получены при регуляризации. 
+}
+.
+
+\section{Чувствительность метода}
+Кривая доходности, построенная по методу SW зависит от вектора цен на инструменты, от сроков и периодов выплат купонов и номинала, а так же от двух параметров модели. 
+Данные о структуре выплат можно считать точными. Предельная форвардная ставка $\w$, являясь макроэкономическим показателем, так же считается фиксированной\footnote{Чувствительность модели к $\w$ разобрана в \cite{Lager}}. Большой интерес представляет изучение чувствительности к параметру сходимости $\alpha$. Этот вопрос будет изучен в конце главы. Центральным местом главы является устойчивость кривой доходности к ценам на инструменты. Поскольку мы рассматриваем два вида инструментов, то анализ будет проводиться параллельно. Основные выкладки для них практически не отличаются, за исключением производной от вектора $\zeta$.
+
+К изучению устойчивости мы подойдем с математической стороны вопроса\marginpar{Связь с хеджем из \cite{Lager}}. Центральным объектом для изучения будет мгновенная форвардная ставка. Именно неровная форма форвардной кривой побудила нас к изучению данного вопроса. По методу SW значение $f(t)$ к сроку исполнения $t$ определяется как:
+\begin{align*}
+	f(t) = \w - \frac{G(t,u)Qb}{1 + H(t,u)Qb}.
+\end{align*}
+Использовать данный вид будет проблематично, поскольку в последствии придется прибегать к процедурам численного интегрирования. Поэтому для более удобных вычислений воспользуемся приближением \eqref{f_prox}. Так
+\begin{align*}
+	f(t) \approx \w - \frac{d}{dt}\left\{e^{\w t}D(t)\right\} = \w - G(t,u)Qb = \w - G(t,u)DCb
+\end{align*}
+Данный вид более удобен для анализа, поскольку теперь выражение линейно по вектору $\zeta = Cb$. Ранее мы не специально не указывали зависимость от векторы цен $\pi$ значения форвардной ставки $f = f(t,\pi)$.  Матрица $G(t,u)$ не зависит от $\pi$. Найдем производную от функции $f$ :
+\begin{align*}
+\frac{d}{d\pi}f(t,\pi) &= -G(t,u)D\frac{d\zeta}{d\pi}\\
+&= -G(t,u)D\zeta'_{\pi}
+\end{align*}
+В зависимости от выбранных инструментов производная от $\zeta$ будет отличаться. Так для облигаций имеем
+\begin{align*}
+\zeta'_p = \frac{d\zeta}{dp}&= \frac{d}{dp}\left\{C\left(C^*WC\right)^{-1}(p-C^*d)\right\} \\
+&= C\left(C^*WC\right)^{-1}
+\end{align*}
+Для свопов установлено что
+\begin{align*}
+\zeta'_r = \frac{d\zeta}{dr} =& \left(I - C\left(C^*WC\right)^{-1}C^*W\right)U\diag(b)-\\
+&-C\left(C^*WC\right)^{-1}\diag\left(U^*D(u)\right)
+\end{align*}
+Это сложное выражение может быть упрощено если матрица $C$ обратима. Тогда
+\begin{align*}
+\zeta'_r = \frac{d\zeta}{dr}=-C\left(C^*WC\right)^{-1}\diag\left(U^* C^{-1}p\right)
+\end{align*}
+При малом изменении вектора цен $\pi$ на величину $d\pi$ значение форвардной ставки в точке $t$ меняется на 
+\begin{align*}
+%df(t) = \scalar{\frac{d}{d\pi}f(t,\pi)}{d\pi}
+df(t) = \frac{d}{d\pi}f(t,\pi)\,d\pi
+\end{align*}
+Нас будет интересовать максимальное отклонение $df(t)$. Найдем его при ограничении $|d\pi| \leqslant 1bp$\footnote{1bp можно считать достаточно малым. Далее обозначение bp мы опустим. Знак неравенства стоит понимать поэлементно. Ограничение можно заменить на другое, к примеру $d\pi \leqslant spread/2$.}\marginpar{\footnotesize добавить интерпретацию $1bp$}. Известно, что решение предложенной задачи оптимизации равно
+\begin{align*}
+\max\limits_{|d\pi| \leqslant 1} df(t) = \sum\left|\frac{d}{d\pi_i}f(t,\pi)\right|
+\end{align*}
+Теперь зная наибольшее отклонение форвардной кривой в каждой точке $t$, мы можем найти ту из них, в которой это отклонение максимально. Поиск данной точки должен производится численно, хотя на практике этой точкой всегда становится $t_{LLP}$. 
+
+...
+
+графики?
+
+...
+
+Отклонение в единственной точке не может дать полную картину на всем временном горизонте. Для оценки изменения форвардной кривой в целом найдем ее среднеквадратичное отклонение. В appendix [??] получена квадратичная форма от $d\pi$, выражающая это отклонение
+\begin{align*}
+\int_0^{\infty}(df(t))^2\,dt = \scalar{\zeta'_\pi\,d\pi}{B(u,u)\zeta'_{\pi}\,d\pi},
+\end{align*}
+где симметрическая матрица $B(u,u)$, имеет схожую природу с матрицей Уислона и строится поэлементно основываясь на функцию 
+\begin{align*}
+B(u,v) = \alpha e^{-\w(u+v)}\left[y_1 - e^{y_2} \left((3+y_2)\sinh(y_1) - y_1 \cosh(y_1)\right)/2\right],
+\end{align*}
+c обозначенными для краткости $y_1 = \alpha\min(u,v); y_2 = \alpha\max(u,v)$. 
+
+Интерпретацией построенной оценки служит следующая модель. Предположим, что мы рассматриваем портфель составленный из облигаций, ценой по $1\$ $ каждая. При этом мы располагаем всеми доступными облигациями. Будем считать что эти инструменты доступны на каждый день вперед. При этом набор бесконечен. Тогда предложенный интеграл будет отражать изменение стоимости данного портфеля. 
+Теперь  мы хотим найти максимальное отклонение в среднем $df(t)$. Используя прежние ограничения решаем задачу квадратичного программирования\footnote{В данном случае это максимизация квадратичной формы на многомерном кубе}:
+\begin{align}
+\max\limits_{|d\pi| \leqslant 1} \Bigl(\int_0^{\infty}(df(t))^2\,dt\Bigr)^{1/2}
+= \max\limits_{|d\pi| \leqslant 1} \scalar{\zeta'_\pi\,d\pi}{B(u,u)\zeta'_{\pi}\,d\pi}^{1/2}
+\end{align}
+Известно множество методов ее решения. Но самым простым является полный перебор значений $d\pi_i=\pm 1$.
+
+...
+
+графики?
+
+...
+
+Возможен и другой подход к оценке чувствительности. Рассмотрим задачу
+\begin{align}
+\max\limits_{\|d\pi\| \leqslant 1} \Bigl(\int_0^{\infty}(df(t))^2\,dt\Bigr)^{1/2}
+= \max\limits_{\|d\pi\| \leqslant 1} \scalar{\zeta'_\pi\,d\pi}{B(u,u)\zeta'_{\pi}\,d\pi}^{1/2}
+\end{align}
+где норма $\|d\pi\|$ рассматривается в пространстве $l_2$. Данная постановка имеет менее очевидную интерпретацию, но математически является более информативной и наглядной. Так решение задачи равно максимальному собственному значению $\lambda_{\max}$ матрицы $\zeta'^*_{\pi}B(u,u)\zeta'_{\pi}$ и будет достигаться на соответствующем собственном векторе $d\pi_{\max}$. В таком случае функционал может быть представлен как 
+\begin{align}
+\max\limits_{\|d\pi\| \leqslant 1} \Bigl(\int_0^{\infty}(df(t))^2\,dt\Bigr)^{1/2}
+= \scalar{d\pi_{\max}}{\lambda_{\max}d\pi_{\max}}^{1/2}
+\end{align}
+Графически можно выразить чувствительность с помощью вектора $\sqrt{\lambda_{\max}}d\pi_{\max}$. Рассмотрим пример.
+
+....
+
+графики
+
+....
+
+Результаты показывают, что основной вклад в нестабильность кривых вносит именно ошибка в ценах на $t_{LLP-1}$ и $t_{LLP}$. К схожему результату пришли исследователи из <<Cordano>> в своих работах \cite{Cordano??}, а так же Thomas and Mare \cite{Thomas&Mare}. 
+
+Существует более простой способ получения численной характеристики, выражающей устойчивость метода. Предположим что помеха $d\pi$ имеет стохастическую природу. В качестве возможного распределения возьмем многомерное стандартное нормальное. Тогда математическое ожидание от ошибки равно\marginpar{\scriptsize можно побаловаться с перестановкой местами интегралов для получения интересной интерпретации} 
+\begin{align}
+\mathbb{E}\int_0^{\infty}(df(t))^2\,dt = \mathrm{trace}\left({\zeta'_{\pi}}^* B(u,u) \zeta'_{\pi}\right) \label{sensitivity}
+\end{align}
+Такая модель дает более естественную оценку чувствительности, но не дает возможности построить соответствующий вектор погрешности цен. В последствии мы покажем, что полученные оценки чувствительности могут быть использованы для выбора параметра регуляризации. 
+
+Предложенные рассуждения можно дополнить, если ввести некоторую матрицу $\Delta$, отражающую ошибку в ценах, то есть $\|\Delta^{-1}dp\|$ имеет порядок единицы. В этом случае мы можем заменить $d\pi$  на $\Delta d\eta$, где $d\eta$ отражает ошибку в модели. Тогда предложенные ранее формулы примут вид 
+\begin{align}
+\max\limits_{|\Delta^{-1}d\pi| \leqslant 1bp} 
+	\Bigl(\int_0^{\infty}(df(t))^2\,dt\Bigr)^{1/2}
+= \max\limits_{|d\eta| \leqslant 1} 
+	\scalar{\zeta'_\pi \Delta\, d\eta}{B(u,u)\zeta'_{\pi}\,\Delta d\eta}^{1/2}
+\end{align}
+Соответственно берется максимальное собственное значение $\lambda_{\max}$ матрицы $(\zeta'_{\pi}\Delta)^*B(u,u)\zeta'_{\pi}\Delta$ и ее собственный вектор $d\eta_{\max}$
+\begin{align}
+\max\limits_{\|\Delta^{-1} d\pi\| \leqslant 1bp} \Bigl(\int_0^{\infty}(df(t))^2\,dt\Bigr)^{1/2}
+= \scalar{d\eta_{\max}}{\lambda_{\max}d\eta_{\max}}^{1/2}
+\end{align}
+
+Оценка чувствительности в среднем будет равна
+\begin{align*}
+\mathbb{E}\int_0^{\infty}(df(t))^2\,dt = \mathrm{trace}\left((\zeta'_{\pi}\Delta)^* B(u,u) \zeta'_{\pi}\Delta\right) 
+\end{align*}
+
+
+В заключении рассмотрим целый класс оценок, имеющих схожую природу с уже предложенными. Более информативным с практической точки зрения является оценка изменения цены аннуитета. Мы рассмотрим аппроксимацию этой модели и перейдем к изучению среднеквадратичного отклонения функции дисконтирования
+\begin{align}
+\Bigl(\int_0^{\infty}(dD(t))^2\,dt\Bigr)^{1/2}
+= \scalar{\zeta'_\pi \Delta\, d\eta}{\Phi(u,u)\zeta'_{\pi}\,\Delta d\eta}^{1/2}
+\end{align}
+Ключевым является вопрос вычисления матрицы $\Phi(u,u)$, которая снова строится по принципам матрицы Уилсона. Так каждый ее элемент может быть вычислен по формулам
+\begin{align}
+\Phi(u_1,u_2) = \int_0^{\infty} W(t,u_1) W(t,u_2) \,dt
+\end{align}
+Найти значение интеграла вполне возможно, но выписать его явно сложно, поскольку размеры итогового выражения велики. Мы советуем прибегнуть к процедуре численного интегрирования. Это объясняется еще и тем, что  данная модель является частным случаем более общей, в которой возможно лишь численное решение. Так теперь рассматривается уже не аннуитет, а некий портфель имеющий сложный профиль выплат $pr(t)$. В этом случае формулы изменятся незначительно
+\begin{align}
+\Bigl(\int_0^{\infty}(pr(t)dD(t))^2\,dt\Bigr)^{1/2}
+= \scalar{\zeta'_\pi \Delta\, d\eta}{\Phi(u,u)\zeta'_{\pi}\,\Delta d\eta}^{1/2}
+\end{align}
+где 
+\begin{align}
+\Phi(u_1,u_2) = e^{-\w (u_1+u_2)}\int_0^{\infty} pr^2(t) W(t,u_1) W(t,u_2) \,dt
+\end{align}
+В силу произвольности функции $pr(t)$ аналитическое вычисление интеграла невозможно. Зато применение численных методов вполне оправдано. Дальнейшие оценки среднего или максимального отклонения производятся по уже описанной схеме.
+
+%\subsection{Чувствительность к параметру сходимости}
+%Производная форвардной ставки по $\alpha$
+%\begin{align}
+%\frac{df}{d\alpha} = \frac{d}{d\alpha}\left\{-G(t,u)Qb\right\}
+%\end{align}
+
+\subsection{Аннутет}
+
+Рассмотрим непрерывный произвольный поток платежей с профилем выплат $pr(t)$. При этом рассматриваемый горизонт пока считаем не ограниченным, то есть 
+\begin{align*}
+\mathcal{A} = \int_0^{\infty} pr(t) D(t)\, dt
+\end{align*}
+Изучим вопрос чувствительности данного показателя к малым изменениям $d\pi$ цен на инструменты с помощью производной 
+\begin{align*}
+\frac{d\mathcal{A}}{d\pi} &= \int_0^{\infty} pr(t) \frac{dD(t)}{d\pi}\, dt
+\\
+&= \int_0^{\infty} pr(t) W(t,u)\frac{d\zeta}{d\pi}\, dt
+\\ 
+&= \int_0^{\infty} pt(t) W(t,u)\, dt \cdot \zeta'_{\pi}
+\end{align*}
+Значение вектора, полученного при интегрировании $pr(t)W(t,u)$ можно найти численно. Обозначим полученный вектор за $\varphi^*$. Тогда интересующий нас градиент будет равен
+\begin{align*}
+\mathrm{grad}\mathcal{A} = {\zeta'}^*_{\pi} \varphi
+\end{align*}
+От нахождения стоимости в непрерывном случае перейдем к оценке чувствительности в дискретном. Так предположим, что  снова рассматривается произвольный профиль $pr(t)$, но выплаты происходят в точках $v$. Тогда искомое значение равно
+\begin{align*}
+\mathcal{A} = \scalar{pr(v)}{D(v)}
+\end{align*}
+А его градиент
+\begin{align*}
+\mathrm{grad}\mathcal{A} &= {\zeta'}^*_{\pi} W^*(v,u) pr(v) 
+\\
+&= {\zeta'}^*_{\pi} W(u,v) pr(v)
+\end{align*}
+Тем самым получена еще одна оценка чувствительности. Значение стоимости аннуитета можно получить положив $pr(t)\equiv 1$.
+Полученное значение градиента все еще нуждается в определенной доработке. Так для дальнейшего анализа потребуется некоторая скалярная характеристика, описывающая чувствительность метода. Рассмотрим возможные варианты:
+\begin{enumerate}
+
+\item Самый простой очевидный вариант --- это рассмотреть некоторое ``предполагаемое'' направление изменения цен, описываемое вектором $dr$. В этом случае
+$$
+Sn_1(\mathcal{A}) = \scalar{\mathrm{grad}\mathcal{A}}{dr}
+$$
+
+\item  С другой стороны мы могли бы рассмотреть целую область, в которой может находиться значение $dr$, и найти наихудший из возможных вариантов. Предположим, что область задается ограничением $|dr|\leqslant spread/2$. Тогда 
+$$
+Sn_2(\mathcal{A}) = \max\limits_{|dr|\leqslant spread/2}\scalar{\mathrm{grad}\mathcal{A}}{dr} = \scalar{|\mathrm{grad}\mathcal{A}|}{spread/2}
+$$
+
+\item Рассмотрим вариант с вероятностной постановкой. Пусть известно, что случайный вектор ошибки $dr$ имеет нулевое среднее и матрицу ковариации $\Delta\Delta^*$. Тогда дисперсия случайной величины $\scalar{\mathrm{grad}\mathcal{A}}{dr}$ равна
+$$
+Sn_3(\mathcal{A}) = (\mathrm{grad}\mathcal{A})^*\Delta\Delta^*\mathrm{grad}\mathcal{A}
+$$
+\item Возможной модификацией всех предыдущих моделей может являться нормировка полученного значение чувствительности на стоимость условного аннуитета. Для последнего подхода оценка равна
+$$
+Sn_4(\mathcal{A}) = \left((\mathrm{grad}\mathcal{A})^*\Delta\Delta^*\mathrm{grad}\mathcal{A}\right) / \mathcal{A}
+$$
+\end{enumerate}
+
+
+\newpage
+\section{Регуляризация}
+Построив оценки чувствительности метода SW мы убеждаемся в том, что метод нуждается в определенной доработке. Очевидно, что источником подобной неустойчивости является фиксация цен на инструменты. Данные неизбежно содержат некоторую ошибку. Эта ошибка носит как случайный характер, так и систематический, связанный с ликвидностью. К этому выводу приходят и John Hibbert в \cite{Hibbert}, указывая на необходимость отхода от фиксированных цен. 
+
+Перейдем к вопросу о модификации исходной модели. Первым и наиболее распространенным подходом является аппроксимация сплайнами форвардной кривой, построенной по методу SW. Этот универсальный метод имеет два основных недостатка. Во-первых, за универсальностью кроется сложность в вычислениях, превращающая простую модель  SW в более ``громоздкий'' для реализации метод. Во-вторых, использование сплайнов не имеет какой-либо экономической интерпретации. В-третьих, этот подход ведет к усложнению контроля за величиной и пропорциональностью изменений в элементах\footnote{Появляется явный дисбаланс при корректировке цен в большую сторону для одних и в меньшую для других сроков к исполнению.} вектора отклонения от начальных цен. Именно последнее требование побуждает к использованию метода регуляризации, развитым в работах А.Н.Тихонова. 
+
+Для построения новой модели, использующей регуляризацию необходимо определить функционал, отвечающий за величину отклонения исправленных цен $\pi$ от их исходных значений $\pi_0$. В качестве штрафующего за отклонение функционала естественно взять квадрат невязки цен $(\pi - \pi_0)$. Поскольку в некоторых компонентах вектора цен мы уверены меньше чем в других, введем нормировочную матрицу $\Delta$, отвечающая за масштабирование вектора невязки
+\begin{align*}
+J_{\Delta}(\pi-\pi_0) = \left\|\Delta^{-1}(\pi - \pi_0)\right\|^2 
+\end{align*}
+ Матрица $\Delta\Delta^*$ может быть интерпретирована как матрица ковариации для случайной ошибки в векторе цен на инструменты. Она выражает уровень нашей уверенность в одних ценах и неуверенность в других. Требованиями к матрице $\Delta\Delta^*$ является симметричность и неотрицательно определенность. В этом случае все последующие выкладки стоит рассматривать считая, что $\Delta\Delta^*$ есть некая единая матрица ковариации.
+ 
+ На практике важным вопросом является проблема выбора матрицы $\Delta$. Мы будем предполагать, что ошибка в ценах на инструменты с разным сроком к исполнению некоррелированы. В реальности это допущение не всегда справедливо, но для построения более широкой модели мы не обладаем большей информацией. А обсуждение всех методов статистических оценок выходит за рамки данной статьи. Исходя из сделанного предположения определим матрицу $\Delta$ нулями вне главной диагонали. Для построения диагональных элементов мы предлагаем взять за основу значения спреда цен\footnote{Значение спреда на практике не всегда строго положительно. В этом случае необходимо определить минимальное значение спреда, на которое необходимо раздвинуть некорректные данные. Этот вопрос нуждается в отдельном изучении.}.
+Величина спреда обладает наибольшей информативностью из всех данных, доступных на некоторый фиксированный момент времени. Исходя из предложенных рассуждений определим масштабирующую матрицу $$\Delta = \diag(spread/2)$$
+С другой стороны, обладая определенной статистической информацией на последнем временном интервале можно строить более глубокую модель. Но даже при ее использовании необходимо в большей мере опираться на значение спреда в данный момент. Как показывает практика, те компоненты цен на инструменты, которые вносят наибольший вклад в неровность результата, имеют большее значение спреда. Случается и обратное. Так критическим для нашей идеи является обратный случай, когда источник неровности обладает узким спредом. Менее неприятным является наличие относительно широких спредов для цен, не нуждающихся в корректировке. Так достаточно часто кривая доходности имеет неровность в самом начале. Если к этому условию добавить широкий спред на цены с короткими сроками, то это естественно приведет к сильному отклонению от исходной кривой. Полученные выводы приводят нас к идее построения некоторых весовых коэффициентов. 
+
+В этот вопрос мы постараемся не углубляться и предложим лишь одно замечание, касающееся именно малых сроков. Так рассмотрим разброс цен high и low. Величина разности этих значений обладает очень слабой устойчивостью, так как отражает положение дел на весь день торгов, и вряд ли может быть использована явно для построения матрицы $\Delta$. Но более интересные результаты удается получить, если рассмотреть среднее значение их разности для каждого из сроков.
+
+....
+график
+....
+
+Полученная результат подтверждает наше предположение о необходимости использования весовых коэффициентов именно для решения проблемы с малыми сроками. В качестве одного из вариантов коэффициентов мы предлагаем использован нормированный\footnote{обсудить способ нормировки} вектор средней разности high и low.
+
+
+Теперь определим функционал, описывающую дополнительную информацию о кривой доходности, которую мы ожидаем получить. В качестве такой информации зачастую выступает  гладкость решения. В нашем случае на роль стабилизирующего функционала подходит \eqref{Smooth_begin} предложенный SW. Помимо гладкости он также приближает доходность к $\w$, тем самым штрафуя кривую за неровность и отсутствие сходимости к предельному значению. 
+ 
+ Основной идеей метода регуляризации является построение и минимизация суммы функционала, штрафующего за отклонение, и функционала, выражающего дополнительную информацию о модели
+\begin{align*}
+J\left[\pi - \pi_0, D(\cdot)\right] = \frac{1}{\lambda}J_\Delta[\pi-\pi_0] + J_{SW}[D(\cdot)]
+\end{align*}
+В данной формулировке появился новый параметр $\lambda$. Так же как и $\alpha$ он отвечает за баланс между отклонением от исходных цен и гладкостью\footnote{Поставленная задача по сути является многокритериальной.}. \marginpar{\footnotesize Оформить в теорему} До конца этой главы мы будем считать оба параметра фиксированными.
+
+Прежде чем мы непосредственно перейдем к описанию методов регуляризации, рассмотрим вспомогательную задачу.
+Пусть известна некоторая функция дисконтирования $\wt{D}(\cdot)$, а также вектор исходных цен $\pi_0$. Предлагается найти новые цены $\pi$ и новую функцию дисконтирования $D(\cdot)$, являющиеся решением задачи
+\begin{align}
+\min\limits_{\pi,D(\cdot)}
+\left\{
+	J\bigl[\pi-\pi_0,D - \wt{D}\bigr]
+	\Big|
+	C^*D(u) = p 
+\right\}
+\end{align}
+
+
+Как и ранее определим $P = D - \wt{D}$ и введем обозначение $\tilde{p} = C^*\wt{D}(u)$. Перейдем к рассмотрению вопроса относительно функции $P(\cdot)$. Решение может быть существенно упрощено, если разделить задачу минимизации на две подзадачи
+\begin{multline*}
+\min\limits_{\pi,P(\cdot)}
+\left\{
+	J\bigl[\pi-\pi_0,P(\cdot)\bigr]
+	\Big|
+	C^*P(u) = p - \tilde{p}
+\right\} =
+\\
+= \min\limits_{\pi,P(\cdot)}
+\left\{
+	\frac{1}{\lambda} J_{\Delta} [\pi - \pi_0] + J_{SW}\left[P(\cdot)\right]
+	\Big|
+	C^*P(u) = p - \tilde{p} 
+\right\}= 
+\\
+= \min\limits_{\pi} 
+\left\{
+	\frac{1}{\lambda} J_{\Delta} [\pi - \pi_0] + 
+	\min\limits_{P(\cdot)} 
+	\left\{
+		J_{SW}\left[P(\cdot)\right]
+		\Big|
+		C^*P(u) = p - \tilde{p} 
+	\right\}
+\right\}
+\end{multline*}
+
+Используя \eqref{asdasd}, избавимся от внутренней минимизации. Домножим полученное выражение на константу $\lambda$ и получим постановку относительно вектора $\pi$
+\begin{align}
+\left\| \Delta^{-1}\left(\pi - \pi_0\right)\right\|^2 +
+\lambda
+\left\|C\beta\right\|^2_W 
+\rightarrow \min\limits_\pi , \label{reg_gen_final}
+\end{align}
+где мы использовали обозначение
+\begin{align}
+\beta = \left(C^*WC\right)^{-1}(p-\tilde{p}). \label{beta_def}
+\end{align}
+При этом искомая функция дисконтирования $D(t)$ выражается как
+\begin{align}
+D(t) = \wt{D}(t) + W(t,u)C\beta
+\end{align}
+Перейдем к построению решения для двух видов инструментов.
+
+
+
+\subsection{Coupon bonds}
+
+Если данными являются облигации, то есть $\pi \equiv p$, то задача \eqref{reg_gen_final} примет вид
+\begin{align}
+\left\| \Delta^{-1}\left(p - p_0\right)\right\|^2 +
+\lambda
+\left\|C\beta\right\|^2_W 
+\rightarrow \min\limits_p \label{reg_bond_min_p}
+\end{align}
+При этом матрица $C$ не зависит от вектора цен $p$.
+
+Запишем данную формулировку в другом виде. Используя \eqref{beta_def}, выразим вектор новых цен через $\beta$
+\begin{align*}
+p = C^*WC\beta + \tilde{p}
+\end{align*}
+Рассмотри функционал \eqref{reg_bond_min_p}, но уже относительно переменной $\beta$ \marginpar{\scriptsize при такой замене задача не изменится}
+\begin{align}
+\left\| \Delta^{-1}\left(C^*WC\beta - (p_0 - \tilde{p}) \right)\right\|^2 +
+\lambda
+\left\|C\beta\right\|^2_W 
+\rightarrow \min\limits_{\beta} \label{reg_bond_min_beta}
+\end{align}
+Приравняем производную данного функционала к нулю
+\begin{align*}
+0 = C^*WC \left(\Delta\Delta^*\right)^{-1}
+\left(
+	C^*WC\beta -(p_0-\tilde{p})
+\right)
++
+\lambda C^*WC \beta
+\end{align*}  
+Откуда находим оптимальное значение
+\begin{align*}
+\beta = 
+\left(
+	C^*WC + \lambda\Delta\Delta^*
+\right)^{-1}(p_0-\tilde{p})
+\end{align*}
+и соответствующие новые цены
+\begin{align}
+\begin{aligned}
+p &= p_0 - \lambda\Delta\Delta^*
+\left(C^*WC + \lambda\Delta\Delta^* \right)^{-1}(p_0-\tilde{p})
+\\
+&= p_0 - \lambda\Delta\Delta^*\beta 
+\end{aligned}
+\label{bond_price_reg}
+\end{align}
+Важно отметить, что если мы применим метод SW к новым регуляризированным ценам, то в результате получим ту же кривую доходности, что и при использовании регуляризации по исходным ценам. Это становится очевидным, если рассмотреть два представления вектора $\beta$
+$$
+\left(
+	C^*WC + \lambda\Delta\Delta^*
+\right)^{-1}(p_0-\tilde{p})
+= \beta = 
+(C^*WC)^{-1}(p-\tilde{p})
+$$
+Рассмотрим второй тип инструментов.
+
+\subsection{Par swap rates}
+Если данными являются свопы, то есть $\pi \equiv r$, то задача \eqref{reg_gen_final} имеет вид
+\begin{align}
+\left\| \Delta^{-1}\left(r - r_0\right)\right\|^2 +
+\lambda
+\left\|C\beta\right\|^2_W 
+\rightarrow \min\limits_r \label{reg_swap_min_r_begin}
+\end{align}
+Найти минимум функционала относительно $r$ будет сложно, поскольку в отличие от случая облигаций не только вектор $\beta$, но и матрица $C$ зависят от $r$. Напомним, что данная зависимость является линейной
+$$
+C = C(r) = E+U\diag(r).
+$$
+С другой стороны вектор $p$ является константой, что несколько упрощает задачу.
+
+%Предположим, что известно некоторый вектор цен  $\tilde{r}$ достаточно близкий к решению задачи \eqref{reg_swap_min_r_begin}. Этим ценам будет соответствовать матрица выплат
+%$$
+%\wt{C} = C(\tilde{r}) = (E+U\diag(\tilde{r})).
+%$$
+%Поскольку задачу \eqref{reg_swap_min_r_begin} решить явно не получится, постараемся приблизить ее более простой. Для этого найдем вектор $\tilde{\beta}$, минимизирующий
+%\begin{align}
+%\big\|\wt{C} \tilde{\beta} - C\beta\bigr\|^2_W 
+%\rightarrow\min\limits_{\tilde{\beta}} \label{tld_beta_def}
+%\end{align}
+%Для его нахождения приравнивая производную к нулю и используя \eqref{beta_def}, получим
+%\begin{align*}
+%\wt{C}^*W\wt{C}\tilde{\beta}
+%&= \wt{C}^* WC \left(C^*WC\right)^{-1}(p-\tilde{p})\\
+%&= \bigl(C^*+\bigl(\wt{C}^*-C^*\bigr)\bigr) WC\beta \\
+%&= p - \tilde{p} + \bigl(\wt{C}^*-C^*\bigr) WC\beta.
+%\end{align*}
+%Воспользуемся приближением $C\beta \approx \wt{C}\tilde{\beta}$ и окончательно получим:
+%$$
+%\wt{C}^*W\wt{C}\tilde{\beta} = p-\tilde{p} + \bigl(\wt{C}^*-C^*\bigr) W\wt{C}\tilde{\beta}
+%$$
+%Откуда
+%\begin{align*}
+%\tilde{\beta} = \bigl(C^* W\wt{C}\bigr)^{-1} (p-\tilde{p}).
+%\end{align*}
+%Полученное значение вообще говоря не является решением \eqref{tld_beta_def}. Можно лишь утверждать, что приближение $\wt{C}\tilde{\beta}$ достаточно близко к $C\beta$, и норма их разности имеет порядок $O(r-\tilde{r})$. При этом вектор $C\beta$ есть не что иное, как проекция $\wt{C}\tilde{\beta}$ на $\mathrm{Im}(C)$. В том случае, когда матрица $C$ обратима, приближение будет совпадать с исходным вектором. \marginpar{НУЖНЫ оценки точности!!}
+%
+%Таким образом вместо точного выражения для новой функции дисконтирования будет использовано 
+%\begin{align}
+%D(t) = \wt{D}(t) + W(t,u)\wt{C}\tilde{\beta}, \label{swap_discount_reg}
+%\end{align}
+%
+%Аппроксимируем в \eqref{reg_swap_min_r} второе слагаемое и получим задачу
+%\begin{align}
+%\left\| \Delta^{-1}\left(r - r_0\right)\right\|^2 +
+%\lambda
+%\left\|\wt{C}\tilde{\beta}\right\|^2_W \rightarrow \min\limits_r.  \label{reg_swap_min_r}
+%\end{align}
+ Для её решения необходимо перейти к постановке относительно переменной $\beta$. Используя обозначение $C_0 = C(r_0)$, запишем уравнение связи цен с функцией дисконтирования в новом виде
+\begin{align*}
+p &= C^*D(U)\\
+&= (C_0 - (C_0 - C))^*D(u) \\
+&= (C^*_0 - \diag(r_0 - r)U^*)D(u)
+\end{align*}
+Откуда при помощи \eqref{} получаем
+\begin{align}
+r = r_0 - \Big(\diag\left(U^*D(u)\right)\Big)^{-1}
+\left(C_0^*WC\beta - (p-C_0^*\wt{D}(u))\right) \label{swap_price_from_beta}
+\end{align}
+Полученная зависимость цен $r$ от вектора $\beta$ близка к линейной. Наличие в формуле значения $D(u)$  не позволяет утверждать о строгой линейной зависимости. Но если учесть, что при малых изменениях в векторе цен $r$ функция дисконтирования меняется крайне незначительно, то данное утверждение отчасти верно. 
+
+Полученное выражение для $r$ позволяет сформулировать задачу \eqref{reg_swap_min_r_begin} относительно переменной $\beta$
+\begin{align}
+\left\| 
+	\Theta^{-1}
+	\left(C_0^*WC\beta - (p-C_0^*\wt{D}(u))\right)
+\right\|^2 +
+\lambda
+\left\|C\beta\right\|^2_W 
+\rightarrow \min\limits_{\beta} \label{reg_swap_min_beta}
+\end{align}
+где 
+$$
+\Theta = \Theta(D(u)) =  \diag\left(U^*D(u)\right)\cdot\Delta.
+$$
+Решать \eqref{reg_swap_min_beta} в предложенном виде мы не станем, а снова вернемся к формулировке \eqref{reg_swap_min_r_begin}  и найдем производную вектора $r$ по $\beta$. Для этого удобно сначала найти производную $dr/d\zeta$, где $\zeta := C\beta$, а потом $d\zeta/d\beta$. Продифференцируем выражение $p = C^*D(u)$, или более подробно
+$$
+p = C^*\left(\wt{D}(u)+ W\zeta\right)
+$$
+Так
+$$
+0 = \diag\left(U^*D(u)\right) \cdot \frac{dr}{d\zeta} + C^*W.
+$$
+Откуда
+$$
+\frac{dr}{d\zeta} = - \left(\diag\left(U^*D(u)\right)\right)^{-1} C^*W.
+$$
+Также потребуется значение
+$$
+\frac{d\zeta}{d\beta} = U\diag(\beta)+C
+$$
+Для нахождения минимума \eqref{reg_swap_min_r_begin} приравняем его производную по $\beta$ к нулю
+\begin{align*}
+0 &= \left(\frac{d\zeta}{d\beta}\right)^*
+\left(
+\frac{dr}{d\zeta}^*
+\left(\Delta\Delta^*\right)^{-1}
+\left(r-r_0\right) +
+\lambda WC\beta
+\right)
+\\
+&=
+(U\diag(\beta)+C)^*WC(\Theta\Theta^*)^{-1}
+\left(C_0^*WC\beta - (p-C_0^*\wt{D}(u)) +
+\lambda \Theta\Theta^* \beta\right)
+\end{align*}
+В результате искомое $\beta$ является корнем уравнения
+\begin{align}
+(C_0^*WC + \lambda \Theta\Theta^*) \beta = p-C_0^*\wt{D}(u) \label{swap_b_implic}
+\end{align}
+Новое представление для правой части может быть использовано в \eqref{swap_price_from_beta}. Так  
+\begin{align*}
+r =  r_0 + \lambda \Delta\Theta^*\beta
+\end{align*}
+Однако полученные формулы все еще не могут быть применены. Уравнение относительно $\beta$ не является линейным, поскольку матрицы $C$ и $\Theta$ зависят от этой переменной. Данная проблема указывает на необходимость заменить точное значение матриц на их аппроксимации. Чтобы аппроксимировать $C$ предположим, что известно некоторое приблизительное решение задачи $\hat{r}$. Этому значению цен будет соответствовать матрица выплат 
+$$
+\widehat{C} = C(\hat{r}) = E+U\diag(\hat{r}).
+$$
+В качестве аппроксимации $\Theta$ при использовании приближения $\widehat{D}(u)$ положим
+\begin{align}
+\widehat{\Theta} =\Theta\bigl(\widehat{D}(u)\bigr) =  
+\diag\left(U^*\widehat{D}(u)\right)\Delta. \label{tld_Tht_def}
+\end{align}
+В результате данных изменений мы можем приблизительно найти корень $\beta$ уравнения \eqref{swap_b_implic} 
+\begin{align*}
+\beta = 
+\left(
+	C_0^*W\widehat{C} + 
+	\lambda \widehat{\Theta}\widehat{\Theta}^*
+\right)^{-1}
+\left(p-C_0^*\wt{D}(u)\right)
+\end{align*}
+Теперь новый вектор цен и функция дисконтирования имеют вид
+\begin{gather}
+r = r_0+\lambda\Delta\widehat{\Theta}^* \beta\\
+D(t) = \wt{D}(t) + W(t,u)\widehat{C}\beta
+\end{gather}
+Перейдем к вопросу точности предложенных формул.
+Так рассмотрим значение 
+$$
+\widehat{\Theta}^*\beta = 
+\left(
+	C_0^*W\widehat{C}(\widehat{\Theta}^{*})^{-1} + 
+	\lambda \widehat{\Theta}
+\right)^{-1}
+\left(p-C_0^*\wt{D}(u)\right)
+$$
+Нам необходимо получить оценку на разность 
+$$
+C\left(\diag\left(U^*D(u)\right)\right)^{-1} - \widehat{C}\left(\diag\left(U^*\widehat{D}(u)\right)\right)^{-1}
+$$
+
+...
+
+...
+
+...
+
+Таким образом мы приходим к следующему алгоритму вычисления значений $r$ и $\beta$. В зависимости от необходимой точности несколько раз повторяется последовательное вычисление
+\begin{gather*}
+\widehat{C} = C(\hat{r})
+\\
+\widehat{D}(u) = \wt{D}(u) + W\widehat{C}\hat{\beta}
+\\
+\hat{\beta} = 
+\left(
+	C_0^*W\widehat{C} + 
+	\lambda \widehat{\Theta}\widehat{\Theta}^*
+\right)^{-1}
+\left(p-C_0^*\wt{D}(u)\right)
+\\
+\hat{r} = r_0+\lambda\Delta\widehat{\Theta}^* \beta
+\end{gather*}
+Полученные на последней итерации приближенные значения $C,r,\beta$ можно считать точными. 
+
+Снова сделаем замечание, связывающее новую постановку со старой. Так построенная по методу SW и новым ценам кривая будет близка к той, что строится с регуляризацией по старым ценам.
+
+Это не совсем верно. Нельзя утверждать о близости кривых исходя из выражения
+$$
+(C_0WC+\lambda\Theta\Theta^*)^{-1}(p-C_0^*\wt{D}(u)) = (C^*WC)^{-1}(p-C^*\wt{D}(u)).
+$$
+В этом есть одно из отличий от случая облигаций, где из схожего уравнения следует равенство кривых.
+
+Если рассматривать постановку, где $\wt{D}(t) = D_0(t)+W(t,u)\zeta$, то новая функция дисконтирования равна
+\begin{align*}
+D(t) &= D_0(t) + W(t,u)\zeta+ W(t,u)C(C^*WC)^{-1}(p-C^*d_0-C^*W\zeta)
+\\
+&= D_0(t) + W(t,u)C(C^*WC)^{-1}(p-C^*d_0) + W(t,u)(I - C(C^*WC)^{-1}C^*W)\zeta
+\end{align*}
+Теперь рассмотрим  кривую доходности, построенную по новым ценам без учета $\wt{D}$
+\begin{align*}
+D(t) = D_0(t) + W(t,u)C(C^*WC)^{-1}(p-C^*d_0)
+\end{align*}
+
+Отличие формул заключается в слагаемом $W(t,u)(I - C(C^*WC)^{-1}C^*W)\zeta$. Следовательно мы можем утверждать, что построенная по новым ценам кривая совпадает с регуляризированной кривой в следующих  двух случаях. При $\zeta=0$, то есть в методе Тихонова. Или в случае, когда матрица $C$ обратима $I -C(C^*WC)^{-1}C^*W = 0$.
+
+
+
+
+
+\subsection{Методы регуляризации}
+
+В этой главе опишем основные методы регуляризации, используемые по большей части в линейных системах. Такой выбор продиктован тем, что рассматриваемые задачи для обоих видов инструментов достаточно близки к постановкам, характерным для линейных систем. 
+
+ Прежде чем перейти к описанию методов, введем удобное для дальнейшего изложения обозначение. Так положим $D_0(t) = e^{-\w t}, d_0 = D_0(u)$. Рассмотрим первый
+\begin{itemize}
+\item Метод Тихонова. 
+
+Постановка задачи заключается в поиске аргументов, минимизирующих функционал
+\begin{align}
+\min\limits_{\pi,D(\cdot)}
+\left\{
+	J\bigl[\pi-\pi_0,D - D_0\bigr]
+	\Big|
+	C^*D(u) = p 
+\right\} \label{reg_Tikh_gen}
+\end{align}
+Данная задача соответствует рассмотренному ранее общему случаю с $\wt{D} = D_0$. Согласно полученным результатам, решение в случае облигаций равно
+\begin{gather}
+p = p_0 - \lambda\Delta\Delta^*b \notag
+\\
+D(t) = D_0(t) + W(t,u)Cb \notag
+\\
+b = \left(C^*WC+\lambda\Delta\Delta^*\right)^{-1}\left(p_0 - C^*d_0\right) \label{b_bond_Tikh}
+\end{gather}
+В случае свопов мы также воспользуемся общим результатом
+\begin{gather}
+r = r_0 + \lambda\Delta\Theta^*b \notag
+\\
+D(t) = D_0(t) + W(t,u)C_0b \notag
+\\
+b = \bigl(C_0^*WC_0+\lambda\Theta\Theta^*\bigr)^{-1}\left(p - C_0^*d_0\right) \label{b_swap_Tikh}
+\end{gather}
+Как мы помним, для нахождения значений $b = \beta$ и  $r$ потребуется решать задачу поиска итерационо. Для этого необходимы начальные приближения $\hat{b}$ и $\hat{r}$. Мы предлагаем наиболее очевидное решение $\hat{b} = (C_0^*WC_0)^{-1}(p-C_0^*d_0)$ и  $\hat{r} = r_0$.
+
+Данный метод является значительно более устойчивым к ценам на инструменты, чем исходный метод. Более детально этот вопрос будет рассмотрен в следующей главе. 
+
+Идею метода Тихонова можно развить и рассмотреть несколько последовательных шагов по методу Тихонова, используя каждый раз в качестве исходной точки ту, что была получена на предыдущей итерации.
+
+\item 
+Итерационный метод Тихонова. 
+
+В данном случае на каждой итерации $n$ решается задача
+\begin{align*}
+\min\limits_{\pi,D(\cdot)}
+\left\{
+	J\bigl[\pi-\pi_0,D - D_{n-1}\bigr]
+	\Big|
+	C^*D(u) = p 
+\right\}, \quad n=1,\ldots,m
+\end{align*}
+Снова воспользуемся полученными ранее результатами и выпишем решение в случае  облигаций
+\begin{gather*}
+p_n = p_0 - \lambda\Delta\Delta^*\beta_n
+\\
+D_n(t) = D_{n-1}(t) + W(t,u)C\beta_n
+\\
+\beta_n = \left(C^*WC+\lambda\Delta\Delta^*\right)^{-1}\left(p_0 - C^*D_{n-1}(u)\right)
+\end{gather*}
+Результатом работы данного метода являются вектор $p_m$ и функция $D_m$, при этом их промежуточные значения нам не важны.
+Чтобы избежать лишних вычислений на каждой итерации введем переменную $b_n$, такую что $D_n(t) = D_0(t)+ W(t,u)C b_n$. Подставив данное выражение в исходные формулы получим, что $b_0 = 0$ и $b_n = b_{n-1} + \beta_n$. Более подробно 
+\begin{align}
+b_n = b_{n-1}+ \left(C^*WC+\lambda\Delta\Delta^*\right)^{-1}\left(p_0 - C^*d_0 - C^*WCb_{n-1}\right),
+\quad n=1,\ldots, m \label{bond_iter_b}
+\end{align}
+Выпишем окончательный вид для функции дисконтирования и цен в случае облигаций
+\begin{gather*}
+p_m = p_0 - \lambda\Delta\Delta^*(b_m - b_{m-1})\\
+D_m(t) = D_0(t) + W(t,u)C b_m
+\end{gather*}
+При этом не обязательно искать функцию дисконтирования и цены на каждой итерации, необходимо лишь вычислить вектор $b_m$ по формулам \eqref{bond_iter_b}. Важно отметить, что достаточно единожды вычислить обратную матрицу $\left(C^*WC+\lambda\Delta\Delta^*\right)^{-1}$ и использовать ее на каждом шаге, не прибегая к процедуре обращения, тем самым существенно ускоряя процесс вычисления. К сожалению, это полезное свойство применимо лишь в случае облигаций. Перейдем к построению итерационной схемы для свопов.
+
+Итерационные формулы будут иметь вид
+\begin{gather*}
+r_n = r_0 + \lambda\Delta\Theta_n^*\beta_n
+\\
+D_n(t) = D_{n-1}(t) + W(t,u)C_n\beta_n
+\\
+\beta_n = \bigl(C_0^*WC_n+\lambda\Theta_n\Theta_n^*\bigr)^{-1}\left(p - C_0^*D_{n-1}(u)\right)
+\end{gather*}
+При этом на каждом шаге производится вычисление приближений $\hat{r}_n$ и $\hat{\beta}_n$. Как и в одношаговом методе Тихонова на первой итерации  $n = 1$ мы используем ровно те же начальные значения. А вот для каждой последующей можно использовать значение предыдущих величин в качестве отправной точки. То есть $\hat{\beta}_n = \beta_{n-1}$ и $\hat{r}_n = r_{n-1}$. Перейдем к более простому виду для итерационного метода Тихонова.
+
+В отличие от ранее рассмотренных алгоритмов, функцию дисконтирования придется искать в виде $D_n(t) = D_0(t) + W(t,u)\zeta_n$. Определив начальное значение $\zeta_0 = 0$, получим
+\begin{gather*}
+\beta_n = \left(C_0^*WC_n+\lambda\Theta_{n}\Theta_{n}^*\right)^{-1}
+\left(p - C_0^*d_0 - C_0^*W\zeta_{n-1}\right) 
+\\
+\zeta_n = \zeta_{n-1}+ 
+C_n\beta_n
+\\
+r_n = r_0 + \lambda\Delta\Theta_n^*\beta_n
+\end{gather*}
+На последнем шаге находим искомую функцию дисконтирования
+\begin{align*}
+D_m(t) = D_0(t) + W(t,u)\zeta_m
+\end{align*}
+ С одной стороны полученный метод обладает большей устойчивость по сравнению с одношаговым, с другой стороны это улучшение сопряжено с большим количеством вычислений. При этом оба алгоритма могут быть использованы на практике, в зависимости от предъявляемых требований.
+ 
+Далее нами будут рассмотрены различные методы выбора параметра регуляризации $\lambda$. Поскольку для этого придется каждый раз заново запускать итерационную процедуру, то имеет смысл перейти к альтернативным подходам.
+Перейдем к рассмотрению методов, в которых в качестве параметра регуляризации выступает само число итераций, а не параметр $\lambda$.
+
+
+\item
+Explicit iteration scheme (the Landweber's method). 
+
+Рассмотрим задачу минимизации функционала
+\begin{align}
+J_\Delta(\pi-\pi_0) = \|\Delta^{-1}(\pi-\pi_0)\|^2
+\end{align}
+Решение будем производить итерационно. В качестве переменной, по которой ведется оптимизация, выступает вектор $\eta = (C^*WC)^{1/2}\beta$. Если внимательно посмотреть на постановку по Тихонову \eqref{reg_gen_final} при $\wt{D} = D_0$, то причины данной замены становятся ясны. Так в новых терминах для задачи с облигациями минимизируется 
+\begin{align}
+J_\Delta(\eta) = \|\Delta^{-1}((C^*WC)^{1/2}\eta - (p_0 - C^*d_0)))\|^2
+\end{align}
+Направление наискорейшего спуска в точке $\eta$ задается вектором
+$
+-\mathrm{grad} J_\Delta(\eta) 
+$
+%= -(C^*WC)^{1/2}(\Delta\Delta^*)^{-1}((C^*WC)^{1/2}\eta - (p_0-C^*d_0))
+Движение в направлении данного вектора является идеей следующей итерационной формулы, известной как Landweber's iteration
+\begin{align}
+\eta_{n} = \eta_{n-1} - \mu \,\mathrm{grad} J_\Delta(\eta)
+\end{align}
+Возвращаясь к прежним обозначениям  может быть записана как
+\begin{align}
+b_n = b_{n-1} + \mu (\Delta\Delta^*)^{-1}(p_0-C^*d_0 - C^*WCb_{n-1}), \quad n=1,\ldots
+\end{align}
+где $\mu>0$ --- некоторый параметр, отвечающий за длину шага. Выпишем формулы для нахождения новых цен и новой функции дисконтирования 
+\begin{gather*}
+p_n = C^*(d_0 + WCb_n)\\
+D_n(t) = D_0(t) + W(t,u)C b_n.
+\end{gather*}
+Для свопов формулы строятся аналогично. Решение строится по формулам
+\begin{gather*}
+\beta_n = \mu(\Theta_{n}\Theta_{n}^*)^{-1}\left(p - C_0^*d_0 - C_0^*W\zeta_{n-1}\right) 
+\\
+\zeta_n = \zeta_{n-1}+ C_n\beta_n
+\\
+r_n = r_0 + \diag^{-1}(U^*D_n(u))\left(p - C_0^*d_0 - C_0^*W\zeta_n\right)
+\\
+D_n(t) = D_0(t) + W(t,u)\zeta_n  ,\quad n=1,\ldots, m 
+\end{gather*}
+Снова отметим, что предложенные выражения не являются явными по $\beta$ и $r$. Таким образом на каждом шаге производится итерационная процедура вычисления приближений $\hat{\beta}$ и $\hat{r}$.
+
+Данные формулы незначительно отличаются от тех, что получены для итерационного метода Тихонова. Разница заключается в уравнении шага для $\beta_n$. Это отличие определяет название метода, поскольку на каждом шаге нет необходимости обращать матрицу системы $C^*WC$. Вместо этого используется обратные от диагональных матриц. Это свойство существенно ускоряет процесс вычисления на каждом шаге. Но есть и обратная сторона. Так количество необходимых для получения результата итераций очень велико. Мы не отказывается от возможности использовать данный метод, поскольку он может быть чрезвычайно полезен для вычислительных систем, где операция обращения матрицы является трудоемкой.
+
+\item Неявная итерационная схема.
+
+Данный метод ничем не отличается от итерационного метода Тихонова за одним исключением. Если раньше параметром регуляризации считался коэффициент $\lambda$, то в данной схеме параметром является число итераций $n$. Плюсом этого метода является отсутствие необходимости начинать заново итерационный процесс при подборе параметра регуляризации. Для итерационного метода Тихонова пересчет начинается заново для каждого нового $\lambda$. Это приводит к дополнительным вычислительным расходам. 
+
+Важно отметить, что в отличие от предыдущей схемы параметр $\lambda>0$ может быть выбран практически любым. Чуть позже мы дополним ограничения. В неявной схеме он по сути регулирует баланс между точностью и количеством итераций. Взяв $\lambda$  большим, мы получим большую точность, но для этого потребуется значительное число итераций. Если же взять $\lambda$ достаточно малым, то количество итераций может быть снижено до уровня десяти шагов. Безусловно такие значения не стоит использовать на практике, но для тестирования алгоритма на большом объеме данных это свойство весьма полезно. Таким образом выбор конкретного $\lambda$ производится заранее исходя из предъявляемых требований в решению. В следующей главе мы опишем несколько критериев останова, каждый из которых при различных значениях $\lambda$ будет давать одинаковый результат, но с некоторой погрешностью. Именно величину этой погрешности регулирует параметр $\lambda$.
+
+Перейдем к последнем методу, в котором параметр регуляризации имеет смысл $n$, но при этом может принимать любые  не только целые значения.
+
+\item The method of the Cuachy problem.
+
+Метод основан на предельном переходе в итерационных схемах при $1/\lambda = ds\rightarrow 0$. Простейшим способом получения формул является построение непрерывного аналога явной итерационной схемы.  Так в случае облигаций имеем
+\begin{align*}
+\Delta\Delta^*b'(s) = p_0-C^*d_0 - C^*WCb(s)
+\end{align*}
+Параметр регуляризации $s$ в данном случае выступает в роли аналога $n$ в дискретном случае. Формулы нахождения новых цен и функции дисконтирования почти не изменились 
+\begin{gather*}
+p(s) = C^*(d_0 - WCb(s))\\
+D(s,t) = D_0(t) + W(t,u)C b(s).
+\end{gather*}
+В случае свопов непрерывный аналог строится по аналогии с явной схемой.
+\begin{gather*}
+r(s) = r_0 + \Delta\Theta^{-1}(s)\left(p - C_0^*d_0 - C_0^*W\zeta(s)\right) 
+\\
+C(s) = C(r(s))
+\\
+\Theta(s) = \Theta(D_0(u) + W\zeta(s))
+\\
+\zeta'(s) = C(s)(\Theta(s)\Theta^*(s))^{-1}
+\left(p - C_0^*d_0 - C_0^*W\zeta(s)\right) 
+\end{gather*}
+В результате функция дисконтирования равна
+\begin{align*}
+D(s,t) = D_0(t) + W(t,u)\zeta(s)
+\end{align*}
+Существенным отличием от прежних методов является отсутствие какой-либо аппроксимации при построении метода для свопов. Но поставленную задачу придется решать численно, что неизбежно также к некоторым неточностям, связанными сугубо с применяемой разностной схемой. Соответствующие оценки точности необходимо изучать для каждой схемы отдельно.
+
+Важно отметить, что полученная система дифференциальных уравнений является жесткой [??]. Это означает, что методы ее решения должны быть специализированы и основываться на неявной итерационной схеме. То есть стандартные методы Рунге-Кутта лучше не применять. А если и применять, то с осторожностью и специализированными модификациями. 
+
+\end{itemize}
+Перейдем к обсуждению предложенных методов. Каждый из них имеет свои плюсы и минусы. Так самый простой и быстрый метод Тихонова в случае свопов может быть реализован только с учетом его меньшей устойчивости.  Этот подход можно сделать более устойчивым, если использовать итерационный метод Тихонова, который в свою очередь может оказаться слишком трудоемким. Более совершенный класс итерационных методов, таких как явная и неявная схема, имеет лучшую \textit{квалифиацию}. Но за этим будет стоять либо достаточно большое число итераций, либо объемные вычисления на каждом шаге. В завершении мы представили метод, связанный с решением задачи Коши. Он в большей степени предназначен для серьезных математических пакетов, и в отличие от предыдущих схем не может быть реализован в Exel.  Помимо этого в при решении задачи коши потребуется использовать соответствующие неявные методы(рунге кутта не пойдет). В теории плюсом этого метода является отсутствие неточных вычислений, однако на практике при численном решении схемы мы несомненно столкнемся ровно с той же проблемой точности.
+
+%Перейдем к анализу полученных формул. Новые функции дисконтирования как для облигаций, так и для свопов имеют схожую структуру. В обоих случаях мы произвели взаимооднозначную замену от вектора новых цен $\pi$ к вектору переменных $b$ той же размерности. В новой постановке для вектора $b$ получено явное выражение, которое отличается от оригинальной дополнительным слагаемым $\lambda\Delta^2$ при обращении матрицы $Q^*HQ$. Разбирающийся в регуляризации читатель мог заранее предположить такой функции дисконтирования, взяв вместо $\Delta$ единичную матрицу. Во всяком случае использование единичной матрицы не выглядит плохой идеей. К этому выводу побуждает изучение числа обусловленности матрицы $Q^*HQ$\marginpar{\footnotesize график с числом обусловленности?}. Но более глубокое исследование приводит к предложенному виду матриц $\Delta$ для облигаций и $\wt{\Delta}$ для свопов.
+
+
+
+В завершении данной главы мы предлагаем другой подход, отличный от описанных ранее, но имеющий схожую интерпретацию.
+\subsection{Жесткие ограничения (или регуляризация в пространстве $l_\infty$ по принципу невязки)}
+Рассмотрим иной вариант регуляризации исходной модели. Коротко опишем идею этого подхода. В предыдущей главе мы искали минимум суммы функционала невязки и функционала гладкости. При этом сами новые цены могли бы принимать любое значение. Теперь мы рассмотрим задачу минимизацию функционала $J_{SW}[D(\cdot)]$ при жестком ограничении на невязку цен
+\begin{align*}
+-1\leqslant \Delta^{-1}(\pi-\pi_0) \leqslant 1,
+\end{align*}
+где сравнение c вектором производится поэлементно\footnote{В терминах функционального анализа в пространстве $l_\infty$ эта запись имеет вид $\|\Delta^{-1}(\pi-\pi_0)\|_{l_\infty}<1$. Важно отметить, что ранее мы рассматривали норму этого же вектора в пространстве $l_2$.}. 
+Проводя абсолютно аналогичные рассуждения мы придем к двум новым постановкам. Так для облигаций решается задача относительно вектора $b$
+$$
+\min\limits_{b}
+\left\{
+	\left.
+		\scalar{Cb}{WCb}
+	\right| 
+	-1 \leqslant 
+	\Delta^{-1}\left(C^*WCb - (p_0-C^*d_0) \right)
+	\leqslant 1 
+\right\}.
+$$
+Для свопов решается задача
+$$
+\min\limits_{b}
+\left\{
+	\left.
+		\scalar{Cb}{WCb}
+	\right| 
+	-1 \leqslant 
+	\Theta^{-1}\left( C_0^*WCb - (p-C_0^*d_0)\right)
+	\leqslant 1 
+\right\},
+$$
+после чего находятся новые цены по формулам \eqref{bond_price},\eqref{swap_price} соответственно.
+В обоих случаях мы получили задачу квадратичного программирования, решение которой находится численно.
+В случае свопов нахождение векторов $r,b$ снова производится итерационно. Дальнейшее построение функции дисконтирования ведется по прежним формулам. 
+
+Предложенная идея имеет очевидную интерпретацию. Так в обоих случаях мы ищем максимально гладкое и сходящееся к $\w$ решение среди всех, построенных по котировкам внутри спреда цен. 
+
+Предложенной модели мы могли бы уделить больше внимания, но у нее есть существенный минус, который становятся понятен при первом взгляде на графики.
+
+...
+
+графики
+
+...
+
+Получаемые кривые в большой степени тяготеют к смещению цен в сторону сближения к $\w$ на участке, близком к точке $t_{LLP}$. В подавляющем большинстве случаев значение новых цен в самой точке $t_{LLP}$ принимает значение на границе спреда. Это означает, что вместо чувствительности исходного метода к начальным ценам мы получим новый метод, чувствительсный к их спредам. Построенный метод ничуть не лучший исходного. Возможным его улучшением является отказ от построения по текущим данным матрицы $\Delta$. При этом потребуется построить некоторую универсальную $\Delta$, что становится новой статистической проблемой, требующей отбельного изучения.  
+
+Важно отметить, что этот метод регуляризации мало отличается от предложенного ранее метода Тихонова с выбором параметра по критерию невязки. Изменилось лишь пространство, в котором оценивается норма отклонения.
+
+\newpage
+\section{Чувствительность новых моделей}
+Рассмотрим итерационный метод Тихонова. Для каждого шага нас будет интересовать значение производной $d(C\beta)/dr_0$. В качестве бонуса мы получим и значение $dr/dr_0$. Итак рассмотрим первое уравнение, справедливое на каждой итерации
+$$
+p = C^*D(u) = C^*(\wt{D}(u) + WC\beta)
+$$
+Возьмем производную по $r_0$
+$$
+0 = \diag(U^*D(u))\frac{dr}{dr_0}+ C^*\frac{d\wt{D}(u)}{dr_0}+
+C^*W\left(U\diag(\beta)\frac{dr}{dr_0} +C\frac{d\beta}{dr_0}\right)
+$$
+Откуда может быть выражено
+$$
+\frac{d\beta}{dr_0} = -(C^*WC)^{-1}\left(M\frac{dr}{dr_0}+ C^*\frac{d\wt{D}(u)}{dr_0}\right)
+$$
+где $M = \diag(U^*D(u))+C^*WU\diag(\beta)$.
+
+Вторым рассматриваемым уравнением является
+$$
+r - r_0= \lambda\Delta\Theta^*\beta = \lambda\Delta\Delta^*\diag(U^*D(u))\beta
+$$
+Снова возьмем производную
+\begin{align*}
+(\lambda\Delta\Delta^*)^{-1} \left(\frac{dr}{dr_0}-I\right) 
+&= 
+\diag(\beta)U^*\left(\frac{d\wt{D}(u)}{dr_0}+WC\frac{d\beta}{dr_0}\right)+
+\diag(U^*D(u))\frac{d\beta}{dr_0} 
+\\
+&= 
+\diag(\beta)U^*\frac{d\wt{D}(u)}{dr_0} -
+M^*(C^*WC)^{-1}\left(M\frac{dr}{dr_0}+ C^*\frac{d\wt{D}(u)}{dr_0}\right)
+\\
+&=
+\left(\diag(\beta)U^*-M^*(C^*WC)^{-1}C^*\right)\frac{d\wt{D}(u)}{dr_0}-
+M^*(C^*WC)^{-1}M\frac{dr}{dr_0}
+\end{align*}
+Используя лемму об обратной матрице окончательно имеем
+\begin{align*}
+\frac{dr}{dr_0} = 
+\left( I-\lambda\Delta^2 M^*(C^*WC+\lambda M\Delta^2M^*)^{-1}M\right)
+\left( I + \lambda\Delta^2\left(\diag(\beta)U^*-M^*(C^*WC)^{-1}C^*\right)\frac{d\wt{D}(u)}{dr_0} \right)
+\end{align*}
+Откуда
+\begin{align*}
+\frac{d(C\beta)}{dr_0} &= U\diag(\beta)\frac{dr}{dr_0} +C\frac{d\beta}{dr_0}  \\
+&= (U\diag(\beta) - C(C^*WC)^{-1}M)\frac{dr}{dr_0} - C(C^*WC)^{-1}C^*\frac{d\wt{D}(u)}{dr_0}
+\end{align*}
+Таким образом 
+\begin{align*}
+\frac{dD(u)}{dr_0} &= \frac{d\wt{D}(u)}{dr_0} + W\frac{d(Cb)}{dr_0}
+\\
+&= W(U\diag(\beta) - C(C^*WC)^{-1}M)\frac{dr}{dr_0} +(I- WC(C^*WC)^{-1}C^*)\frac{d\wt{D}(u)}{dr_0}
+\end{align*}
+При этом можно воспользоваться следующим представлением
+\begin{align*}
+U\diag(\beta) - C(C^*WC)^{-1}M &= U\diag(\beta) - C(C^*WC)^{-1}(\diag(U^*D(u))+C^*WU\diag(\beta))\\
+&= (I - C(C^*WC)^{-1}C^*W)U\diag(\beta) - C(C^*WC)^{-1}\diag(U^*D(u))
+\end{align*}
+На основе предложенных формул строится оценка чувствительности для итерационного и неявного методов, а также для метода Тихонова. Скорее всего их можно упростить, используя представление о диагональной структуре матрицы $\Delta$. Возможно лучшего результата можно добиться дифференцируя $(C_0^*WC+\lambda\Theta\Theta^*)\beta = p - C_0^*\wt{D}(u)$, хотя это уравнение есть следствие первых двух. Также можно использовать обратимость $C$. 
+
+\subsection{Явная схема}
+Снова воспользуемся производной от $p = C^*D(u)$ и выразим
+$$
+\frac{d\beta}{dr_0} = -(C^*WC)^{-1}\left(M\frac{dr}{dr_0}+ C^*\frac{d\wt{D}(u)}{dr_0}\right)
+$$
+C обозначением $\lambda= 1/\mu$ рассмотрим второе уравнение  $p =C^*_0 \wt{D}(u) + \lambda\Theta\Theta^* \beta_n$
+\begin{align*}
+0 = \diag(U^*\wt{D}(u))+ C_0^*\frac{d\wt{D}(u)}{dr_0}+
+\lambda\frac{d(\Theta\Theta^*)}{dD(u)}
+\left( \frac{d\wt{D}(u)}{dr_0}+WU\diag(\beta)\frac{dr}{dr_0}+WC\frac{d\beta}{dr_0} \right)
++\lambda\Theta\Theta^*\frac{d\beta}{dr_0}
+\end{align*}
+где 
+$$
+\frac{d(\Theta\Theta^*)}{dD(u)} = \left( \diag(\Delta^2\diag(U^*D(u))\beta)+\diag(U^*D(u))\Delta^2\diag(\beta) \right)U^*;
+$$
+Пусть 
+$$
+K = \diag(U^*\wt{D}(u))+ 
+\left(
+	C_0^*+
+	\lambda\frac{d(\Theta\Theta^*)}{dD(u)}
+	-\lambda\left(\frac{d(\Theta\Theta^*)}{dD(u)}WC+\Theta\Theta^*\right)(C^*WC)^{-1}C^*
+\right)
+\frac{d\wt{D}(u)}{dr_0}
+$$
+Тогда 
+$$
+-K = \left(\lambda\frac{d(\Theta\Theta^*)}{dD(u)}W
+(U\diag(\beta)-C(C^*WC)^{-1}M) - \lambda\Theta\Theta^*(C^*WC)^{-1}M\right)\frac{dr}{dr_0}
+$$
+Откуда находим $\frac{dr}{dr_0}$, $\frac{d\beta}{dr_0}$ и соответствующую матрицу $\frac{d(C\beta)}{dr_0}$.
+\subsection{Метод задачи Коши}
+Перейдем к вопросу о оценке чувствительности в случае задачи Коши.
+
+Обозначим $b = (\Theta\Theta^*)^{-1}(p - C_0^*d_0 - C_0^*W\zeta)$. Снова рассмотрим два уравнения, первое из которых
+\begin{align*}
+r -r_0= \Delta\Theta^*b = \Delta\Delta^*\diag(U^*D(u))b
+\end{align*}
+после дифференцирования имеет вид
+\begin{align*}
+\Delta^{-2}\left(\frac{dr}{dr_0} - I\right) = \diag(b)U^*W\frac{d\zeta}{dr_0}+ \diag(U^*D(u))\frac{db}{dr_0}.
+\end{align*}
+Производная второго уравнения $p = C^*D(u)$  равна
+\begin{align*}
+0 = \diag(U^*D(u))\frac{dr}{dr_0} + C^*W\frac{d\zeta}{dr_0}
+\end{align*}
+Откуда 
+$$
+\frac{dr}{dr_0} = - \left(\diag(U^*D(u))\right)^{-1} C^*W\frac{d\zeta}{dr_0}
+$$
+Подставляя полученное выражение в производную от первого имеем
+%$$
+%-\Delta^{-2}\left(\left(\diag(U^*D(u))\right)^{-1} C^*W\frac{d\zeta}{dr_0} + I\right) = 
+%\diag(b)U^*W\frac{d\zeta}{dr_0}+ \diag(U^*D(u))\frac{db}{dr_0}.
+%$$
+$$
+\frac{db}{dr_0} = -\left(\Delta^2\diag(U^*D(u))\right)^{-1}
+\left(I + \left((\diag(U^*D(u)))^{-1} C^*W + \Delta^2\diag(b)U^*W\right)\frac{d\zeta}{dr_0}\right)
+$$
+Наибольший интерес представляет уравнение динамики
+\begin{align}
+\frac{d\zeta'}{dr_0} = \frac{d(Cb)}{dr_0} = U\diag(b)\frac{dr}{dr_0}+C\frac{db}{dr_0}
+\end{align}
+подставив в которое необходимые производные, с учетом $d\zeta(0)/dr_0 = 0$ получим задачу Коши, решение которой производится параллельно с исходной.
+
+Заметим, что найденные производные строятся для нахождения оценки чувствительности, которая во многих случаях получается путем домножения полученной матрицы на некоторый вектор. Можно было бы предположить, что в этом случае не стоит строить разностные схемы для всей матрицы, а достаточно записать эти же уравнения непосредственно для  произведения матрицы и вектора, как единого объекта. Но это невозможно. 
+\subsection{Облигации}
+Рассмотрим итерационный метод Тихонова. Для него спреведливо
+\begin{align*}
+\frac{db_n}{dp_0} &= \frac{db_{n-1}}{dp_0} + (C^*WC+\lambda\Delta\Delta^*)^{-1}\left(I-C^*WC\frac{db_{n-1}}{dp_0}\right)
+\\
+&= (C^*WC+\lambda\Delta\Delta^*)^{-1}\left(I+\lambda\Delta\Delta^*\frac{db_{n-1}}{dp_0}\right)
+\end{align*}
+В итоге $$\frac{d(Cb)}{dz_0} = C\frac{db_n}{dp_0}$$ Начальное условие $\frac{db_0}{dr_0} = 0$. Формулы для явной схемы полостью повторяют выражения для итерационной схемы.
+
+Неявная схема имеет мало отличий
+\begin{align*}
+\frac{db_n}{dp_0} &= \frac{db_{n-1}}{dp_0} + (\lambda\Delta\Delta^*)^{-1}\left( I - C^*WC\frac{db_{n-1}}{dp_0}\right)
+\end{align*}
+
+Метод Коши требует отдельного решения матричной задачи
+\begin{align}
+\Delta\Delta^*\frac{db'(s)}{dp_0} = I - C^*WC\frac{db(s)}{dp_0}
+\end{align}
+с начальным условием $\frac{db(0)}{dp_0} = 0$.
+
+
+\newpage
+
+
+\section{Параметр регуляризации}
+Из полученных нами формул \eqref{reg_bond_min_beta},\eqref{reg_swap_min_beta} становится очевидным, что задача регуляризации исходной модели очень близка к задаче регуляризации системы линейных алгебраических уравнений. Более того, для облигаций можно с уверенностью утверждать, что исходная задача сводится к строго линейному виду. В случае свопов подобное утверждение весьма условно, так как матрица $\wt{\Theta}$ имеет ненулевую зависимость от искомой переменной. Поскольку ее влиянием достаточно мало, то и постановку для свопов можно рассматривать как задачу регуляризации линейной системы уравнений. 
+
+Изначально нами рассматривался только метод регуляризации по Тихонову, описанный первым в предыдущей секции. Последующие четыре метода появились немного позже. В связи с этим мы начнем неформальное изложение методов выбора параметра регуляризации применительно именно к методу Тихонова.
+
+ Рассмотрении задачу \eqref{reg_Tikh_gen}, которая, как было показано, может быть сведена к виду
+\begin{align}
+\Bigl\| \Delta^{-1}\left(C^*WCb - (p-C^*d_0) \right)\Bigr\|^2 +
+\lambda
+\Bigl\|Cb\Bigr\|^2_W 
+\rightarrow \min\limits_b \label{reg_b_gen}.
+\end{align}
+%Так теперь мы будем искать решение $b$ линейной системы
+%\begin{align*}
+%Q^*HQb = (p-q) ,
+%\end{align*}
+%про которую известно, что вектор правой задан неточно $(p-q)_\delta;\; \left\|\Delta^{-1}\left[(p-q)_\delta - (p-q)\right]\right\|\leqslant \delta$. Значение $\delta$ считается известным\footnote{Помимо этого известно, что точное решение $b$, построенное по $(p-q)$ ``тяготеет'' к меньшим значениям функции $\|Qb\|_H^2 = \scalar{Qb}{HQb}$}. 
+
+Для более простого изложения перейдем к общим обозначениям, принятым в используемой нами литературе. Так определим
+\begin{gather*}
+A = \Delta^{-1}C^*W^{1/2};\quad 
+u = W^{1/2}Cb;\quad 
+f = \Delta^{-1}(p-C^*d_0).
+\end{gather*}
+В новых обозначениях \eqref{reg_b_gen} примет вид
+%\footnote{
+%	Возможно и другое обобщение. Так приняв 
+%	$$
+%	A = A^* = \Delta^{-1}\left(C^*WC\right)\Delta^{-1};\quad 
+%	u = \Delta b;\quad 
+%	f = \Delta^{-1}(p-C^*d_0).
+%	$$
+%	Мы могли бы перейти к задаче 
+%	$$
+%	\|Au-f\|^2 + \lambda\scalar{u}{Au} \rightarrow \min\limits_u,
+%	$$
+%	решение которой $u_\lambda = (\lambda I + A)^{-1}f$ соответствует так называемой регуляризации Лаврентьева. Конечные формулы для вектора $b$ при этом не изменятся. Однако изменятся методы выбора $\lambda$, которые в случае симметрической матрицы $A$ будут иметь схожий вид, но давать иной результат.
+%}
+\begin{align}
+\|Au-f\|^2 + \lambda\|u\|^2 \rightarrow \min\limits_u. \label{reg_general}
+\end{align}
+
+Рассмотрим вопрос связанный с выбором значения коэффициента $\lambda$, называемого параметром регуляризации. Данный проблема является самой дискуссионной в новой модели, собственно как и вопрос связанный с выбором параметра $\alpha$ в исходной. В начале данной главы условимся считать $\alpha$ фиксированным вне зависимости от метода его определения. 
+
+Начнем с обсуждения важности вопроса выбора $\lambda$. Этот коэффициент определяет баланс между величиной отклонения от исходных цен и степенью гладкости кривой доходности. Так приняв $\lambda = 0$  имеем исходный метод SW, тем самым считая исходные цены фиксированными. При его увеличении решение получается более гладким, но при этом теряется близость к начальным данным. Поэтому взяв $\lambda$ достаточно большим можно получить кривую доходности очень далекую от исходной. 
+
+Критерии выбора параметра регуляризации делятся на априорные и апостериорные. Первый тип используют некоторое заранее известную информацию об ошибке, заложенную в данных. Чаще всего эта информация выражается в виде максимального значения нормы невязки $\delta$. При этом другая информация для определения $\lambda$ не используется. Мы не станем подробно рассматривать априорные методы, так как их результат зачастую нас не устраивает. С другой стороны, даже с применением такого рода методов качество получаемых кривых значительно возрастает. Метод называется апостериорным, если дополнительно изучается значения матрицы $A$ и вектора $f$. 
+
+Так одним из самых известных и широко применяемых является принцип невязки. Формальное определение метода мы дадим позже. В его основе лежит поиск такого параметра $\lambda$, при котором невязка $Au-f$ имеет норму порядка $\delta$. Поскольку значение $\delta$ в нашей задаче не имеет строгой явной интерпретации и может быть выбрано лишь приблизительно(экспертно)\footnote{Стоит отметить, что экспертная оценка константы $\delta$ носит долговременный характер. То есть нет необходимости выбирать его в каждом отдельном случае, и можно зафиксировать на некоторый период.}, то применение принципа невязки может вызвать затруднение, так как от оценки $\delta$ напрямую зависит результат регуляризации. В частности, в предыдущей главе при использовании жестких ограничений мы замаскированно использовали именно принцип невязки и получили сильную зависимость от этого параметра\footnote{Явно этот параметр не обозначался, но ограничения $\pm 1$ прямо указывают на использование $\delta = 1$}. Так если положить $\delta = 1$, то полученный результат может быть интерпретирован следующим образом. Предположим, что множество всех цен, лежащих внутри интервала бид аск, которое по сути является многомерным кубом аппроксимируется сферой. При этом в случае с $\delta = 1$ сфера является наибольшей из всех, вписанных в данный куб. Таким образом любое решение, соответствующее такому значению будет удовлетворять условию отсутствия арбитражных возможностей. При больших $\delta$ гарантировать это нельзя. Развивая эту идею можно вообще отказаться от интерпретации с аппроксимацией сферами и просто искать максимальный параметр $\lambda$, при котором отсутствует арбитраж. Полученный критерий напоминает метод с жесткими ограничениями. К счастью данный подход в меньшей мере чувствителен к размеру спредов, но итоговое решение по прежнему сильно зависит от значения интервала бид аск в LLP. 
+
+В нашей условной градации критериев выбора параметра в зависимости от априорной информации этот подход стоит на первом месте. При этом он является наиболее стабильным, не позволяя допускать грубых сбоев. В среднем, используя данный метод, вы получите переглаженное решение, но при этом не рискуете получить очень большое отклонения от оригинальной кривой. В этом есть и основной минус, когда кривая наоборот требует сильного отхода от начальных цен и большей гладкости, то этот метод не даст желаемого результата. 
+
+Столкнувшись с проблемой выбора $\delta$ нами были изучены методы, не использующие какой-либо априорной информации о модели\marginpar{Бакушинский}. К таким подходам в частности относится метод Wahba \cite{Wahba},\cite{Neumaier}. На практике его применение приводило в значительной степени к неустойчивым результатам. В некоторых случаях получались чрезмерно гладкие кривые, далекие от исходных.  Прибегая к градации методов регуляризации, отнесем подход Wahba в противоположный угол, характеризуемый меньшей зависимостью от априорной информации и большой неустойчивостью. 
+
+Прежде чем переходить к заполнению промежуточных мест с общеизвестными методами, рассмотрим наш альтернативный подход. Он базируется на уже изученном вопросе чувствительности. Так в конце соответствующей главы мы построили оценку \eqref{sensitivity}, основанную на случайности вектора ошибки цен $d\pi$. После регуляризации сама формула \eqref{sensitivity} не изменится. Поменяется лишь производная $\zeta'_\pi$. Так в случае облигаций формула изменит вид незначительно
+\begin{align*}
+\zeta'_p = \frac{d\zeta}{dp} &= \frac{d}{dp}\left\{C\left(C^*WC + \lambda\Delta\Delta^*\right)^{-1}(p-C^*d)\right\} \\
+&= C\left(C^*WC + \lambda\Delta\Delta^*\right)^{-1}
+\end{align*}
+Для свопов выражение может быть получено из соответствующей главы
+\begin{align*}
+\zeta'_r = \frac{d\zeta}{dr} = (U\diag(\beta) - C(C^*WC)^{-1}M) \left( I-\lambda\Delta^2 M^*(C^*WC+\lambda M\Delta^2M^*)^{-1}M\right)
+\end{align*}
+%\begin{align*}
+%\zeta'_r = \frac{d\zeta}{dr} &= \left(I - C\left(C^*WC+ \lambda\Delta\Delta^* \right)^{-1}C^*W\right)U\diag(b)-\\
+%&-C\left(C^*WC+\lambda\Delta\Delta^*\right)^{-1}\diag\left(U^*D(u)\right) 
+%\end{align*}
+Используя полученные выражения находим оценку чувствительности по формуле \eqref{}.
+%, домножив ее на $\delta$. Тем самым мы предполагаем, что данные имеют ковариационную матрицу $\delta I$.
+Для получения параметра $\lambda$ мы предлагаем два подхода. Первый заключается в поиске такого $\lambda$, на котором достигается некоторый определенный уровень чувствительности. Данный уровень должен определяться априорно, тем самым добавляя некоторую неопределенность.  Второй подход копирует первый и рассматривает отношение значения чувствительности при регуляризации с параметром $\lambda$ к значению чувствительности без регуляризации. Выбирается тот параметр $\lambda$, на котором достигается отношение, равное некоторой фиксированной константе. К примеру при выборе константы $20\%$ такой метод даст прирост устойчивости в $5$ раз
+%\footnote{В этих рассуждениях есть одно НО. Формула \eqref{sensitivity} была выведена еще до определения матрицы $\Delta$ как ковариационной матрицы цен. При построении \eqref{sensitivity} мы условно положили матрицу $\Delta$ равной единичной. Таким образом правильно было бы рассматривать другую оценку чувствительности, а именно $\mathrm{trace}\left(\Delta\cdot{\zeta'_\pi}^*B(u,u)\zeta'_\pi\right)$ . С другой стороны мы получили формулу, сильно зависящую от нормировки $\Delta$.  Чтобы избежать этого необходимо снова вводить параметр $\delta$, нормирующий полученное выражение. Такими рассуждениями окончательно приходим  к $\delta\cdot\mathrm{trace}\left(\Delta\cdot{\zeta'_\pi}^*B(u,u)\zeta'_\pi\right)$. Последнее выражение более удобно для второго из описанных подходов, поскольку при делении константа $\delta$ сократиться, что освободит нас от проблемы ее оценки.}
+. Что же касается справедливости предложенных рассуждений, то нам еще предстоит формально обосновать применимость такого метода регуляризации.
+
+Перейдем к более широкому классу регуляризирующих алгоритмов. 
+%Для этого мы откажемся от общей постановки по Тихонову \eqref{reg_general}, которая является одним из решений более общей задачи решения 
+Опираясь на \cite{Raus&Hamarik}, рассмотрим постановку на первый взгляд далекую от решаемой задачи. 
+We consider an operator equation 
+\begin{align}
+A u = f,\quad f\in R(A), \label{system_gen}
+\end{align}
+where $A \in L(H,F)$ is the linear continuous operator between real Hilbert spaces $H$ and $F$. In general our problem is ill-posed: the range $R(A)$ may be non-closed, the kernel $\ker(A)$ may be non-trivial. We suppose that instead of exact right-hand side $f$ we have only an approximation $f_\delta, \|f_\delta - f\|\leqslant\delta$. To get regularized solution $u_r$ of the equation $Au = f$ we consider the regularization methods in the general form, using the approximation
+\marginpar{плагиат}
+%где $A$ --- линейный оператор, действующий в конечномерных пространствах. В общем случае задача плохо обусловлена. Мы полагаем, что вместо точной правой части $f$ доступна лишь аппроксимация $f_\delta, \|f_\delta - f\|\leqslant\delta$. 
+%Для нахождения регуляризированного решения $u_r$ уравнения $Au=f$ мы определим методы регуляризации в общей форме, используя в аппроксимацию
+\begin{align}
+u_r = (I-A^*Ag_r(A^*A))u_0+g_r(A^*A)A^*f_\delta. \label{reg_gen_meth}
+\end{align}
+Here $u_0$ is the initial approximation, $r$ is the regularization parameter, $I$ is the identity operator and the generating function $g_r(t)$ satisfies the following conditions with $r\geqslant0$.
+%Где начальное приближение $u_0$, параметр регуляризации $r$, а функция $g_r$ имеет смысл обращения
+\begin{gather*}
+\sup\limits_{0\leqslant t\leqslant a}
+	\left|\sqrt{t}g_r(t)\right| \leqslant \gamma_*\sqrt{r},  
+\\
+\sup\limits_{0\leqslant t\leqslant a}
+	t^p\left|1-t g_r(t)\right| \leqslant\gamma_p r^{-p}, 
+		\quad 0\leqslant p\leqslant p_0 ,
+\\
+\sup\limits_{0\leqslant t\leqslant a}
+	\left|g_r(t)\right| \leqslant\gamma r.
+\end{gather*}
+Here $p_0,\gamma,\gamma_*$ and $\gamma_p$ are positive constants, $a\geqslant \left\|A^*A\right\|$, $\gamma_0\leqslant 1$ and the greatest value of $p_0$, for which the second inequality holds, is called the \emph{qualification of method}. 
+
+The following regularization methods are special cases of general method \eqref{reg_gen_meth}. We also present the result in terms of \eqref{reg_b_gen}.
+%Для нахождения регуляризированного решения уравнения $Au=f$ определим следующие методы регуляризации
+\begin{itemize}
+\item[P1.] %Метод Тихонова $u_\lambda = \left(\lambda I + A^*A\right)^{-1}A^*f_\delta$. В обозначениях задачи \eqref{reg_b_gen} мы возвращаемся к уже знакомому виду 
+The Tikhonov method $u_\lambda = \left(\lambda I + A^*A\right)^{-1}A^*f_\delta$, что соответствует \eqref{b_bond_Tikh} для облигаций и \eqref{b_swap_Tikh} для свопов. Here
+$$
+u_0 = 0, \; 
+r=\lambda^{-1}, \; 
+g_r(t) = \left(t+r^{-1}\right)^{-1}, \; 
+p_0=1, \;
+\gamma = 1, \;
+\gamma_* = 1/2, \;
+\gamma_p = p^p(1-p)^{1-p}.
+$$
+%Данное выражение уже было нами получено. Этот метод имеет квалификацию равную 1, что говорит не в его пользу. Есть и второй недостаток --- выбор матрицы $\wt\Delta$ в случае свопов. Так для большей точности результата необходимо произвести несколько циклов вычислений, выбирая на каждой итерации $\wt\Delta$ по найденному новому вектору $b$ и снова повторять вычисления с новой матрицей. Необходимость повторения операции очевидна. Эту особенность можно использовать в следующем более совершенном методе.
+
+\item[P2.] 
+%Итерационный метод Тихонова $u_{n,\lambda} = \left(\lambda I + A^*A\right)^{-1} \left(\lambda u_{n-1,\lambda}+ A^*f_\delta\right), \, n=1\ldots m$. В исходных обозначениях 
+The iterative variant of the Tikhonov method. Let $m\in N,\,m\geqslant 1,\, u_0=u_0,\lambda \in H$ --- initial approximation and 
+$$
+u_{n,\lambda} = 
+	\left(\lambda I + A^*A\right)^{-1} 
+	\left(\lambda u_{n-1,\lambda}+ A^*f_\delta\right),
+\,
+n = 1\ldots m.
+$$
+Это соответствует  
+Here
+$$
+r=\lambda^{-1}, \, 
+g_r(t) = \frac{1}{t}\left(1-(1+rt)^{-m}\right),
+p_0=m, \,
+\gamma = m, \,
+\gamma_* = \sqrt{m}, \,
+\gamma_p = \left(\frac{p}{m}\right)^p\left(1-\frac{p}{m}\right)^{1-p}.
+$$
+%In starting denotations
+%\begin{align*}
+%b_{n,\lambda} 
+%&= \left(\lambda\Delta\Delta^* + C^*WC\right)^{-1}\left(\lambda\Delta\Delta^*b_{n-1,\lambda}   +(p-C^*d_0)\right)\\
+%&= b_{n-1,\lambda} - \left(\lambda\Delta\Delta^* + C^*WC\right)^{-1}\left(C^*WCb_{n-1,\lambda} - (p-C^*d_0)\right)
+%\end{align*}
+
+%При этом, как уже отмечалось, в случае мы можем поправлять на каждой итерации матрицу $\wt\Delta$ по формуле \eqref{tldDlt_def}. Во всех последующих итерационных методах это уточнение также имеет место.   \marginpar{Требуется обоснование, или оценки} Перейдем к ряду методов, использующих само число итераций как параметр регуляризации. 
+\item[P3.] 
+Explicit iteration scheme (the Landweber’s method). Let 
+$$
+u_n = u_{n-1} -\mu A^*(Au_{n-1} - f_\delta),\;
+\mu\in \left(0,1/\left\|A^*A\right\| \right), \;
+n = 1,2,\ldots
+$$
+Here 
+$$
+r=n, \, 
+g_r(t) = \frac{1}{t}\left(1-(1+\mu t)^r\right), \,
+p_0=\infty, \,
+\gamma = \mu, \,
+\gamma_* = \sqrt{\mu}, \,
+\gamma_p = \left(\frac{p}{\mu e}\right)^p.
+$$
+%In starting denotations
+%\begin{align*}
+%b_{n} 
+%&= b_{n-1} - \mu\left(\Delta\Delta^*\right)^{-1} \left(Q^*HQb_{n-1} - (p-q)\right)
+%\end{align*}
+%Данный метод удобен своей простотой в вычислениях. Если матрица $\Delta$ является диагональной, то ее обращение является простой операцией, а значит один ход метода проходит быстро. Недостаток такой схемы очевиден: низкая скорость сходимости. Метод может быть применим на практике, но только в случае когда операция обращения является трудоемкой. В противном случае мы рекомендуем использовать следующий метод. 
+\item[P4.] Implicit iteration scheme. Let $\lambda\geqslant 0 $ be a constant and  
+\marginpar{влияние величины $\lambda$}
+$$
+u_{n,\lambda} = 
+	\left(\lambda I + A^*A\right)^{-1} 
+	\left(\lambda u_{n-1,\lambda}+ A^*f_\delta\right),
+\,
+n = 1,2,\ldots.
+$$
+Here
+$$
+r=n, \, 
+g_r(t) = \frac{1}{t}\left(1-\left(\frac{\lambda}{\lambda+t}\right)^r\right), \,
+p_0=\infty, \,
+\gamma = \frac{1}{\lambda}, \,
+\gamma_p = (\lambda p)^p, \,
+\gamma_* = \frac{b_0}{\sqrt{\lambda}},
+$$ 
+where 
+$
+b_0 = \sup\limits_{0\leqslant t \leqslant \infty} 
+	t^{-1/2}\left(1-e^{-t}\right)
+	\approx 0.6382.
+$
+%In starting denotations
+%\begin{align*}
+%b_{n} 
+%&= \left(\lambda\Delta\Delta^* + Q^*HQ\right)^{-1}\left(\lambda\Delta\Delta^*b_{n-1}   +(p-q)\right)\\
+%&= b_{n-1} - \left(\lambda\Delta\Delta^* + Q^*HQ\right)^{-1}\left(Q^*HQb_{n-1} - (p-q)\right)
+%\end{align*}
+%Именно эту схему мы считаем основной, поскольку она является более гибкой. Параметр $\lambda$ в этой схеме регулирует скорость сходимости метода. При этом результат вычислений при достаточно больших значениях $\lambda$ отличаются с минимальной погрешностью. Тем самым данный параметр влияет лишь на баланс между скоростью вычислений и их качеством. 
+
+\item[P5.] 
+%Последний подход приведен для справки. Его применимость ограничивается облигациями, так как $\Delta$ для вычислений нуждается в фиксации.
+The method of the Cauchy problem: approximation $u_r$ solves the Cauchy problem \marginpar{Не применял}
+$$
+u'(r) + A^*Au(r) = A^*f_\delta, \quad u(0)= u_0.
+$$
+Here
+$$
+g_r(t) = \frac{1}{t}\left(1 - e^{-rt}\right), \,
+p_0=\infty, \,
+\gamma = 1, \,
+\gamma_* = b_0, \,
+\gamma_p = \left(\frac{p}{e}\right)^p.
+$$
+%In starting denotations
+%\begin{align*}
+%\left(\Delta\Delta^*\right) b'(r) + Q^*HQ b(r)= p-q
+%\end{align*}
+\end{itemize}
+
+Все предложенные методы были нами рассмотрены ранее, а соответствующие итерационные формулы были представлены для обоих видов инструментов.
+
+The main problem in applying regularization methods is the proper choice of the regularization parameter $r$ in dependence on the noise level $\delta$.
+
+The first prominent a posteriori parameter choice rule is the discrepancy principle, where the regularization parameter is chosen so that the discrepancy has the same order as the error of right-hand side of the equation \eqref{system_gen}.
+
+\textbf{Dicrepancy principle.} 
+Let $b_1,b_2$ be the constants such that $b_2\geqslant b_1 > 1$. If $\left\|Au_0 - f_\delta\right\|\leqslant b_2\delta$, then choose $r(\delta)=0$. In the contrary case choose the parameter $r = r(\delta)\geqslant 0$ for which 
+$$
+b_1\delta \leqslant \left\| Au_r - f_\delta \right\| \leqslant b_2\delta,
+$$
+%or in original denotations
+%$$
+%b_1\delta \leqslant \left\| \Delta^{-1}\left(Q^*HQb_r - (p-q)\right) \right\| \leqslant b_2\delta,
+%$$
+
+It can be shown that for Tikhonov method and iterated Tikhonov method the discrepancy
+principle is not even weakly quasioptimal. For these methods Raus and Hamarik consider
+the following modification of the discrepancy principle, which is weakly quasioptimal for methods with finite qualification. 
+Define the operator $B_r$:
+\begin{align*}
+B_r = 
+\left\{
+	\begin{aligned}
+	I&,\quad p_0 = \infty \\
+	(I-AA^*g_r(AA^*))^{1/2p_0}&, \quad \text{otherwise}
+	\end{aligned}
+\right.
+\end{align*}
+
+\textbf{The modification of the discrepany principle.} 
+Let $b_1,b_2$ be the constants such that $b_2\geqslant b_1 > 1$. If $\left\|B_0(Au_0 - f_\delta)\right\|\leqslant b_2\delta$, then choose $r(\delta)=0$. In the contrary case choose the parameter $r = r(\delta)\geqslant 0$ for which 
+$$
+b_1\delta \leqslant \left\|B_r( Au_r - f_\delta) \right\| \leqslant b_2\delta
+$$
+For methods with infinite qualification this rule coincides with the discrepancy principle.
+For methods with finite qualification we apply to the discrepancy the operator $B_r$.
+Note, that for Tikhonov method $(m = 1)$ and its iterative variant $u_{r,m}$ it holds
+$$
+\left\|
+	B_r(Au_{r,m} - f_\delta)
+\right\|^2 
+= 
+\scalar
+	{Au_{r,m+1} - f_\delta}
+	{Au_{r,m} - f_\delta}
+$$
+
+\textbf{Our modification of the discrepany principle.}
+Параметр регуляризации $r(\delta)$ выбирается исходя из условия
+$$
+\|Au_r - f_\delta \|_{\infty}  = \delta
+$$
+В данном случае наиболее разумно взять $\delta = 1$.
+
+Denote 
+$$
+\varphi(r) = \sqrt{r}\left\|A^*B_r(Au_r - f_\delta)\right\|
+$$ 
+and 
+\begin{align*}
+\tilde{\gamma}_p =
+\left\{
+	\begin{aligned}
+	\gamma_p , \quad p_0 = \infty \\
+	\left( \gamma_{p/(1 + 1/p_0)} \right) ^{1 + 1/p_0}, \quad p_0 < \infty
+	\end{aligned}
+\right.
+.
+\end{align*}
+
+Consider the following
+rule.
+
+\textbf{Rule R1.}
+Let $b_1,b_2$ be the constants such that $b_2\geqslant b_1 > 1$. If $\varphi(1)\leqslant \tilde{\gamma}_{1/2}b_2\delta$, then choose $r(\delta) = 1$. In the contrary case choose the parameter $r = r(\delta) >1$ for which 
+\begin{gather*}
+\varphi(r)\leqslant \tilde{\gamma}_{1/2} b_2\delta \quad \text{for each}\quad  r\geqslant r(\delta), \\
+\varphi(r(\delta))\geqslant \tilde{\gamma}_{1/2} b_1\delta.
+\end{gather*}
+One can estimate the function $\varphi(r)$ by the differences of the approximate solutions
+$$
+\| u_{r+1} - u_r \| /\gamma 
+\leqslant
+\left\|
+	A^*B_r(Au_r - f_\delta)
+\right\|
+\leqslant
+\| u_{r} - u_{r-1} \| /\gamma 
+$$
+and we can reformulate the rule R1 in the following way.
+
+\textbf{The analogue of Rule R1.}
+Let $b_1,b_2$ be the constants such that $b_2\geqslant b_1 \geqslant 1$. If $\|u_1 - u_0\| \leqslant \tilde{\gamma}_{1/2} \gamma b_2\delta$, then choose $r(\delta) = 1$. In the contrary case choose the parameter $r = r(\delta) >1$ for which 
+\begin{gather*}
+\sqrt{r} \|u_r - u_{r-1}\| \leqslant 
+ \tilde{\gamma}_{1/2} \gamma b_2\delta \quad \text{for each}\quad  r\geqslant r(\delta), \\
+\sqrt{r(\delta)}\|u_{r(\delta)} - u_{r(\delta)-1}\| \geqslant \tilde{\gamma}_{1/2} \gamma b_1\delta.
+\end{gather*}
+%Перепишем в исходных обозначениях эти условия, домножив их на $\sqrt{r}$.
+%\begin{gather*}
+%r\|u_r - u_{r-1}\| \leqslant 
+%\tilde{\gamma}_{1/2} \gamma b_2\delta\sqrt{r} \quad \text{for each}\quad  r\geqslant r(\delta), \\
+%r(\delta)\|u_{r(\delta)} - u_{r(\delta)-1}\| \geqslant \tilde{\gamma}_{1/2} \gamma b_1\delta \sqrt{r(\delta)}.
+%\end{gather*}
+
+Предложенный метод мы считаем одним из основных для определения параметра регуляризации в схемах P3 и P4. Вопрос с выбором констант $b_1$ и $b_2$
+обсудим позже, когда предложим наш вариант модификации. Перейдем к близкому методу, удобному для использования в схемах P1 и P2.
+
+In last years the Lepskii principle for a posteriori parameter choice is considered in many papers.
+
+\textbf{Lepskii principle.}
+The approximations $u_{r_k}$ are computed for values $r_0 = \delta^{-2}$ and $r_i = r_0q^i$ with $q<1(i=1,\ldots,m+1)$ and we choose we choose for the regularization parameter $r(\delta) = r_m $ where $m$ is the first index, for which a certain condition is fulfilled. This condition is in [??] (Lepskii principle 1)
+$$
+\|u_{r_m} - u_{r_{m+1}} \| \geqslant c\gamma_*\sqrt{r_m} \delta
+$$
+and in [??] (Lepskii principle 2)
+$$
+\exists j\in1,\ldots, m:\; \|u_{r_j} - u_{r_{m+1}} \| \geqslant c\gamma_*\sqrt{r_j} \delta
+$$
+where the constant $c = 4$ in the original formulation.
+The Lepskii principle is closely related to the Rule R1. 
+
+Raus and Haemarik recommend 
+$c>\left.(1-q)\gamma\tilde{\gamma}_{1/2}\right/\left(\gamma_* \sqrt{q}\right)$
+according to the Lepskii principle 1 and 
+$c>\left.\gamma\gamma_1\right/\gamma_*$
+to the Lepskii principle 2.
+
+\textbf{Критерий квазиоптимальности.}
+В качестве $r(\delta)$ выбирается наибольшее из значений $r$, реализующее локальный минимум функции $\psi(r) = \|r(du_r/dr)\|$. Можно показать,что $\psi(r) = \|r(\lambda I+A^*A)^{-1}(A^*Au - A^*f_\delta)\| = \|r(u_{r+1} - u_r)\|.$ 
+Данный критерий изначально был предназначен для вырожденных линейных систем м являлся одним из первых методов, не использующих априорную информацию о ошибке в модели. К сожалению метод не применим к невырожденным задачам, но существуют его модификации, в частности модифицированный метод квазиоптимальности Леонова. Мы же предлагаем использовать идею Леонова, и скомбинировать правило analogue of R1 и критерий квазиоптимальности. Так если домножить соответствующие формулы на $\sqrt{r}$, то в правой части уравнений непосредственно появится функция $\psi(r)$. В новом виде мы будем искать такое значение $r(\delta)$, которое удовлетворяет условию из analogue of R1 и минимизирует значение $\psi$.
+
+
+\newpage
+
+
+\section*{Appendix A}
+Найдем интеграл
+$$
+\int\limits_0^{\infty}G(u_1,t)G(u_2,t)\,dt
+$$
+Где $u_1<u_2$. Известно, что 
+\begin{align*}
+\frac{dH(u,v)}{dv} = G(u,v) =
+\left\{
+	\begin{aligned}
+	\alpha - \alpha	e^{-\alpha u} \cosh(\alpha v)&\quad v\leqslant u \\
+	\alpha e^{-\alpha v}\sinh(\alpha u) &\quad u\leqslant v
+	\end{aligned}
+\right.
+\end{align*}
+Произведем замену переменных $y_1 = \alpha u_1$, $y_2 = \alpha u_2$ и $x = \alpha t$ и разделим интеграл на три части. Первая из которых равна
+\begin{align*}
+\int\limits_0^{u_1}G(u_1,t)G(u_2,t)\,dt &= 
+\int\limits_0^{u_1} 
+	\left(\alpha - \alpha	e^{-\alpha u_1} \cosh(\alpha t)\right)
+	\left(\alpha - \alpha	e^{-\alpha u_2} \cosh(\alpha t)\right)
+\,dt 
+\\
+&= 
+\alpha \int\limits_0^{y_1} 
+	\left(1 - e^{-y_1} \cosh(x)\right)
+	\left(1 - e^{-y_2} \cosh(x)\right)
+\,dx
+\\
+&=
+\alpha\left(y_1 - e^{-y_1}\sinh(y_1) - e^{-y_2}\sinh(y_1) 
+	+ e^{-y_1}e^{-y_2}(y_1/2 + \sinh(2y_1)/4)\right)
+\end{align*}
+Вторая
+\begin{align*}
+\int\limits_{u_1}^{u_2}G(u_1,t)G(u_2,t)\,dt &= 
+\int\limits_{u_1}^{u_2}
+	\left(\alpha e^{-\alpha t}\sinh(\alpha u_1) \right)
+	\left(\alpha - \alpha	e^{-\alpha u_2} \cosh(\alpha t)\right)
+\,dt 
+\\
+&= \alpha \int\limits_{y_1}^{y_2} 
+	\left(e^{-x} \sinh(y_1)\right)
+	\left(1 - e^{-y_2} \cosh(x)\right)
+\,dx
+\\
+&= \alpha\sinh(y_1)\left(
+	(e^{-y_1}-e^{-y_2})+
+	e^{-y_2}(y_1/2-y_2/2 - e^{-2y_1}/4 + e^{-2y_2}/4)
+\right)
+\end{align*}
+Третья
+\begin{align*}
+\int\limits_{u_2}^{\infty}G(u_1,t)G(u_2,t)\,dt &= 
+\int\limits_{u_2}^{\infty}
+	\left(\alpha e^{-\alpha t}\sinh(\alpha u_1) \right)
+	\left(\alpha e^{-\alpha t}\sinh(\alpha u_2) \right)
+\,dt 
+\\
+&= \alpha \int\limits_{y_2}^{\infty} 
+	\left(e^{-x} \sinh(y_1)\right)
+	\left(e^{-x} \sinh(y_2)\right)
+\,dx
+\\
+&= \alpha\sinh(y_1)\sinh(y_2)e^{-2y_2}/2
+\end{align*}
+В итоге имеем 
+$$
+B(u_1,u_2) = e^{-\w(u_1+u_2)}\int\limits_0^{\infty}G(u_1,t)G(u_2,t)\,dt = 
+\alpha \left(y_1 - e^{-y_2}\left(\frac{3+y_2}{2}\sinh(y_1) - \frac{y_1}{2}\cosh(y_1)\right) \right)
+$$
+Полученная функция лежит в основе симметрической матрицы $B(u,u)$. Для получения квадратичной формы представим искомый интеграл в виде
+\begin{align*}
+\int_0^{\infty} (df(t))^2\,dt &= 
+\int_0^{\infty} (-G(t,u)D\zeta'_{\pi}d\pi)^*(-G(t,u)D\zeta'_{\pi}d\pi)\,dt 
+\\
+&= (\zeta'_{\pi}d\pi)^* \int_0^{\infty} (DG^*(t,u)G(t,u)D)\,dt (\zeta'_{\pi}d\pi)
+\\
+&= \scalar{\zeta'_{\pi}d\pi}{ B(u,u) \zeta'_{\pi}d\pi}
+\end{align*}
+
+\section*{Appendix B}
+Согласно статье \cite{Smith_Wilson} функция Уилсона $W(t,u)$ удовлетворяет следующему условию 
+\begin{multline*}
+\scalar{W(t,u)}{R(t)}_{SW} = 
+		\frac{1}{\alpha^3}
+		\int\limits_0^\infty 
+		\Bigl(
+			\frac{d^2}{dt^2}
+			\left\{
+				e^{\w t} W(t,u)
+			\right\}
+		\Bigr)
+		\Bigl(
+			\frac{d^2}{dt^2}
+			\left\{
+				e^{\w t} R(t)
+			\right\}
+		\Bigr)
+		\, dt
+		+
+		\\
+		+
+		\frac{1}{\alpha}
+		\int\limits_0^\infty 
+		\Bigl(
+			\frac{d}{dt}
+			\left\{
+				e^{\w t} W(t,u)
+			\right\}
+		\Bigr)
+		\Bigl(
+			\frac{d}{dt}
+			\left\{
+				e^{\w t} R(t)
+			\right\}
+		\Bigr)
+		\, dt
+		=
+		R(u)+e^{-\w u }R(0)
+\end{multline*}
+для любой функции дисконтирования $R(t)$. В том числе утверждение справедливо для $R(t) = W(t,v)$ и значение равно $W(u,v)$. При этом нами рассматривается скалярные значения $u,v$.
+
+Рассмотрим функции дисконтирования $D(t) = e^{-\w t}+ W(t,u)\zeta$, построенной по методу SW. Для нее справедливо 
+\begin{align*}
+J_{SW}[D(\cdot)] &= \scalar{W(t,u)\zeta}{W(t,u)\zeta}_{SW} 
+\\
+&= \zeta^*\scalar{W^*(t,u)}{W(t,u)}_{SW}\zeta
+\end{align*}
+Каждый элемент матрицы $\scalar{W^*(t,u)}{W(t,u)}_{SW}$ согласно утверждению равна $W(u,u)$. Следовательно
+\begin{align*}
+J_{SW}[D(\cdot)] &= \zeta^*\scalar{W^*(t,u)}{W(t,u)}_{SW}\zeta
+\\
+&= \scalar{\zeta}{W(u,u)\zeta}
+\end{align*}
+\newpage
+\section{Замечания}
+Написать про то, что если домножить невязку на два а матрицу ковариации разделить, то ответ не изменится.
+
+константа b1 равна двум.
+
+не стоит отказываться от принципа фиксации чувствительности.
+
+не стоит отказываться от 30-летних инструментов
+
+нужно уходить от спредов.. они портят всю малину. Абсолютно точно для подхода с чувствительностью нужно уйти от спредов
+
+Для оценки вектора чувствительности аннуитета к ценам можно не стоить саму матрицу производной, а считать непосредственно вектор градиента. То есть стоит выписать уравнение на этот вектор. ПОПРАВКА! так сделать не получится. Однако при численной реализации необходимо нормировать вектор и матрицу.
+
+
+отделить печать спредов и новых котировок. пользователь сам определяет место печати.
+
+чувствительность новых цен к изменению в старых.
+
+четыре-пять подходов к измерениб чувствительности.
+
+при нормировке на чувствительноть к оригинальной кривой мы теряем информацию о величине отклонений.
+
+при нормировке на стоимость аннуитета не теряется информация о ошибке в модели. то есть мы переходим к вопросу дюрации.(Марат) на практике оба этих подхода дают схожие результаты, но мне больше нравится второй.
+
+есть некоторые проблемы с начальными сроками, точнее с первыми двумя.
+
+
+\newpage
+\addcontentsline{toc}{section}{Список литературы}
+\bibliography{library}
+\end{document}
