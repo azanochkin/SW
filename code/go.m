@@ -1,10 +1,10 @@
 main
 %
+h.method.sensefncname = 'S4';
 h0 = original(h);
 %
-h.rule.name = 'R1';
-%h.rule.name = 'linf';
-h.rule.delta = 2;%0.1*h0.result.sense;
+h.rule.name = 'Sense';
+h.rule.delta = 0.1*h0.result.sense;
 h1 = implicit(h);
 %
 subplot(2,2,1);

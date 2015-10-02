@@ -14,7 +14,7 @@ function h = implicit(h)
     end
     function flag = Sense()
         grad = dxidr'*ann_vec;
-        flag = sensefnk(grad,DltSq,ann_add + xi'*ann_vec)< delta;
+        flag = snsfnc(grad,DltSq,ann_add + xi'*ann_vec)< delta;
     end
     %
     [ m,n,p,U,D,Q0,q0,H,ann_vec,ann_add] = getInitData( h);
@@ -23,7 +23,7 @@ function h = implicit(h)
     DltSq = h.method.DeltaSq;
     invDltSq = inv(DltSq);
     delta = h.rule.delta;
-    sensefnk = h.method.sensefnk; 
+    snsfnc = sensefnc(h.method.sensefncname); 
     %
     switch h.rule.name
         case 'l2'
@@ -73,7 +73,7 @@ function h = implicit(h)
     h.result.r = h.method.r0 + dr;
     h.result.grad = dxidr'*ann_vec;
     h.result.annuity = ann_add + xi'*ann_vec;
-    h.result.sense = sensefnk(h.result.grad,DltSq,h.result.annuity);
+    h.result.sense = snsfnc(h.result.grad,DltSq,h.result.annuity);
     h.method.name = 'implicit';
     h.result.time = toc;
 end

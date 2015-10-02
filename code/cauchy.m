@@ -44,7 +44,7 @@ function h = cauchy(h)
         xi = Xi(1:m);
         dxidr = reshape(Xi(m+1:end),[m,n])/denormdxidr;
         grad = dxidr'*ann_vec;
-        sense = sensefnk(grad,DltSq,ann_add + xi'*ann_vec);
+        sense = snsfnc(grad,DltSq,ann_add + xi'*ann_vec);
         value = sense - delta;
         isterminal = 1;
         direction = 0;
@@ -56,7 +56,7 @@ function h = cauchy(h)
     DltSq = h.method.DeltaSq;
     invDltSq = inv(DltSq);
     delta = h.rule.delta;
-    sensefnk = h.method.sensefnk;
+    snsfnc = sensefnc(h.method.sensefncname);
     %
     switch h.rule.name
         case 'l2'
@@ -82,7 +82,7 @@ function h = cauchy(h)
     h.result.r = h.method.r0 + (p-q0 - Q0'*H*xi)./(U'*D*(1+H*xi));
     h.result.grad = dxidr'*ann_vec;
     h.result.annuity = ann_add + xi'*ann_vec;
-    h.result.sense = sensefnk(h.result.grad,DltSq,h.result.annuity);
+    h.result.sense = snsfnc(h.result.grad,DltSq,h.result.annuity);
     h.method.name = 'cauchy';
     h.result.time = toc;
 end

@@ -14,7 +14,7 @@ function h = explicit(h)
     end
     function flag = Sense()
         grad = dxidr'*ann_vec;
-        flag = sensefnk(grad,DltSq,ann_add + xi'*ann_vec)< delta;
+        flag = snsfnc(grad,DltSq,ann_add + xi'*ann_vec)< delta;
         error('not finished implementation');
     end
     %
@@ -23,7 +23,7 @@ function h = explicit(h)
     DltSq = h.method.DeltaSq;
     invDltSq = inv(DltSq);
     delta = h.rule.delta;
-    sensefnk = h.method.sensefnk; 
+    snsfnc = sensefnc(h.method.sensefncname); 
     %
     switch h.rule.name
         case 'l2'
@@ -68,7 +68,7 @@ function h = explicit(h)
     h.result.r = h.method.r0 + dr;
     h.result.grad = dxidr'*ann_vec;
     h.result.annuity = ann_add + xi'*ann_vec;
-    h.result.sense = sensefnk(h.result.grad,DltSq,h.result.annuity);
+    h.result.sense = snsfnc(h.result.grad,DltSq,h.result.annuity);
     h.method.name = 'explicit';
     h.result.time = toc;
 end
