@@ -56,7 +56,7 @@ function h = cauchy(h)
     DltSq = h.method.DeltaSq;
     invDltSq = inv(DltSq);
     delta = h.rule.delta;
-    snsfnc = sensefnc(h.method.sensefncname);
+    snsfnc = sensefnc(h);
     %
     switch h.rule.name
         case 'l2'

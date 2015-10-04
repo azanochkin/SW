@@ -2,7 +2,7 @@ function [ v, y, f] = getrates( arrh, T)
     N_grid = 300;
     switch numel(T)
         case 0
-            v = arrh(1).data.u(1);
+            v = arrh(1).data.u;
         case 1
             v = linspace(0,T,N_grid)';
         case 2
@@ -10,8 +10,6 @@ function [ v, y, f] = getrates( arrh, T)
         otherwise
             v = T(:);
     end
-    v(v==0) = 1e-5;
-    
     N = numel(arrh);
     y = zeros(length(v),N);
     f = zeros(length(v),N);
@@ -20,18 +18,20 @@ function [ v, y, f] = getrates( arrh, T)
         xi = arrh(i).result.xi;
         w = arrh(i).method.ufr;
         a = arrh(i).method.alpha;
+        H = Wilson_Heart(a,v,u);
+        G = Wilson_G(a,v,u);
 
         %%%%%%%%%%%%%%%%%%%%% spot rate
         %H = Wilson_Heart(a,u,u);
         %spot = w - log(1+H*xi)./u;
-
-        %%%%%%%%%%%%%%%%%%%%% yield
-        H = Wilson_Heart(a,v,u);
-        y(:,i) = w - log(1+H*xi)./v;
-
+        
         %%%%%%%%%%%%%%%%%%%%% forvard intensity
-        G = Wilson_G(a,v,u);
         f(:,i) = w - (G*xi)./(1+H*xi);
+        
+        %%%%%%%%%%%%%%%%%%%%% yield
+        y(:,i) = w - log(1+H*xi)./v;
+        indNaN = v==0;
+        y(indNaN,i) = f(indNaN,i);
     end
 end
 

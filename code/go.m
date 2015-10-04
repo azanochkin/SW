@@ -1,11 +1,7 @@
-main
+u = 1:30;
+h0 = SW(data,day,u);
 %
-h.method.sensefncname = 'S4';
-h0 = original(h);
-%
-h.rule.name = 'Sense';
-h.rule.delta = 0.1*h0.result.sense;
-h1 = implicit(h);
+h1 = SW(data,day,u,'method','implicit','rule','Sense','delta',0.003);%0.1*h0.result.sense);
 %
 subplot(2,2,1);
 plotSW(h0);

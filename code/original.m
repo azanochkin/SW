@@ -10,7 +10,7 @@ function h = original(h)
     h.result.dxi = dxidr;
     h.result.grad = dxidr'*ann_vec;
     h.result.annuity = ann_add + xi'*ann_vec;
-    snsfnc = sensefnc(h.method.sensefncname);
+    snsfnc = sensefnc(h);
     h.result.sense = snsfnc(h.result.grad,h.method.DeltaSq,...
         h.result.annuity);
     h.method.name = 'original';
