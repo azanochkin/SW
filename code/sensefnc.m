@@ -9,10 +9,13 @@ function fnc = sensefnc(h)
         otherwise
             error('not correct name')
     end
-    if h.method.denormsense == 'y'
-        fnc = @(grad,DltSq,ann)fnc(grad,DltSq)/ann;
-    else
-        fnc = @(grad,DltSq,ann)fnc(grad,DltSq);
+    switch h.method.denormsense
+        case 'y'
+            fnc = @(grad,DltSq,ann)fnc(grad,DltSq)/ann;
+        case 'n'
+            fnc = @(grad,DltSq,ann)fnc(grad,DltSq);
+        otherwise
+            error(['undefined value "',h.method.denormsense,'"']);
     end
 end
 

@@ -9,8 +9,9 @@ function h = SW(data,day,u,varargin)
     %
     %spread = 1e-2*median(data.PX_ASK((day-30:day),u) - data.PX_BID((day-30)-1:day-1,u));
     %spread = 1e-2*mean(data.PX_ASK((day-30:day),u) - data.PX_BID((day-30)-1:day-1,u));
-    spread = max(h.data.r_ask-h.data.r_bid,1e-4); spread(20:end) = 3e-4;
+    %spread = max(h.data.r_ask-h.data.r_bid,1e-4); spread(20:end) = 3e-4;
     %spread = 1e-2*std(data.PX_MID((day-30:day),u) - data.PX_MID((day-30)-1:day-1,u));
+    %spread = ones(size(u))*3e-4;
     h.method.DeltaSq = diag(spread/2)^2;
     %
     h.method.r0 = (h.data.r_bid+h.data.r_ask)/2;
