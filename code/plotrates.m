@@ -10,7 +10,8 @@ function [u] = plotrates(h)
     hold on
     vec = sqrt(diag(h.method.DeltaSq));
     plot(u,r_min-r0,'b',u,r_max-r0,'r',u,r_mid-r0,'g+',u,r-r0,'k*',u,vec,'c--',u,-vec,'c--')
-    %title(['clear resudual = ',num2str(1e4*norm(r-r0)),' bps; relev residual = ',num2str(delta)]);
+    dr = r - r0;
+    title(['clear resudual = ',num2str(1e4*norm(dr)),' bps; relev residual = ',num2str(norm(dr./vec))]);
     subplot(2,2,4)
     hold on
     plot(u,r_min,'b*',u,r_max,'r*',u,r_mid,'g*',u,r,'k')

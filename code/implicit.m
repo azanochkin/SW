@@ -18,7 +18,6 @@ function h = implicit(h)
     end
     %
     [ m,n,p,U,D,Q0,q0,H,ann_vec,ann_add] = getInitData( h);
-    lambda = 1e5;
     nsubiter = h.method.nsubiter;
     DltSq = h.method.DeltaSq;
     invDltSq = inv(DltSq);
@@ -39,33 +38,41 @@ function h = implicit(h)
         otherwise
             error('undefined rule');
     end
-    %
-    xi = zeros(m,1);
-    dxidr = zeros(m,n);
-    Q = Q0;
-    %tld = diag(U'*D*(1+H*xi));
-    tld = diag(U'*D*(1+H*Q0*(Q0'*H*Q0\(p-q0))));
-    %
     tic;
     flag = true;
-    nIter = 1;
+    lambda = 1e5;
     %
     while flag
-        for j = 1:nsubiter
-            beta = (Q0'*H*Q+lambda*tld*DltSq*tld)\(p - q0 - Q0'*H*xi);
-            dr = lambda * DltSq * tld * beta;
-            dxi = Q*beta;
-            Q = Q0 + D*U*diag(dr);
-            tld = diag(U'*D*(1+H*(xi+dxi)));
+        xi = zeros(m,1);
+        dxidr = zeros(m,n);
+        Q = Q0;
+        %tld = diag(U'*D*(1+H*xi));
+        tld = diag(U'*D*(1+H*Q0*(Q0'*H*Q0\(p-q0))));
+        %
+        nIter = 1;
+        %
+        while flag
+            for j = 1:nsubiter
+                beta = (Q0'*H*Q+lambda*tld*DltSq*tld)\(p - q0 - Q0'*H*xi);
+                dr = lambda * DltSq * tld * beta;
+                dxi = Q*beta;
+                Q = Q0 + D*U*diag(dr);
+                tld = diag(U'*D*(1+H*(xi+dxi)));
+            end
+            xi = xi + dxi;       
+            Du = D*(1+H*xi);
+            M = diag(U'*Du)+Q'*H*D*U*diag(beta);
+            N = -(Q/(Q'*H*Q))*diag(U'*Du);
+            dxidr = N*(eye(n) - lambda*DltSq*M'*((Q'*H*Q+lambda*M*DltSq*M')\M))*(eye(n)+lambda*DltSq*N'*H*dxidr);
+            %    
+            flag = events();
+            if toc>5
+                lambda = lambda/10;
+                tic;
+                break
+            end
+            nIter = nIter+1;
         end
-        xi = xi + dxi;       
-        Du = D*(1+H*xi);
-        M = diag(U'*Du)+Q'*H*D*U*diag(beta);
-        N = -(Q/(Q'*H*Q))*diag(U'*Du);
-        dxidr = N*(eye(n) - lambda*DltSq*M'*inv(Q'*H*Q+lambda*M*DltSq*M')*M)*(eye(n)+lambda*DltSq*N'*H*dxidr);
-        %    
-        flag = events();
-        nIter = nIter+1;
     end
     h.method.niter = nIter-1;
     h.result.xi = xi;
