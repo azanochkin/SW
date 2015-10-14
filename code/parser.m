@@ -13,7 +13,7 @@ function h = parser( varargin )
                 h.rule.delta = varargin{i+1};
             case 'nsubiter'
                 h.method.nsubiter = varargin{i+1};
-            case 'sensefnk'
+            case 'sensefnc'
                 h.method.sensefncname = varargin{i+1};
             case 'denormsense'
                 h.method.denormsense = varargin{i+1};

@@ -1,6 +1,7 @@
 h0 = SW(data,day,1:30);
 %
-h1 = SW(data,day,1:30,'method','implicit','rule','Sense','delta',0.003);%0.1*h0.result.sense);
+sen = 0.1*h0.result.sense;
+h1 = SW(data,day,1:30,'method','implicit','rule','Sense','delta',sen);
 %
 subplot(2,2,1);
 plotSW(h0);

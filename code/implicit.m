@@ -66,7 +66,7 @@ function h = implicit(h)
             dxidr = N*(eye(n) - lambda*DltSq*M'*((Q'*H*Q+lambda*M*DltSq*M')\M))*(eye(n)+lambda*DltSq*N'*H*dxidr);
             %    
             flag = events();
-            if toc>5
+            if toc>3
                 lambda = lambda/10;
                 tic;
                 break

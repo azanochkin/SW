@@ -2,7 +2,9 @@ function [sen,arrh,res] = fixSense( data,dayGrid,u,mres)
     function meanres = getmeanres(sen)
         res = zeros(1,N);
         disp(sen);
+        fprintf('\b--> %6.2f%%\n',0 )
         for j = 1:N
+            fprintf('\b\b\b\b\b\b\b\b%6.2f%%\n',j/N*100)
             day = dayGrid(j);
             h1 = SW(data,day,u,'method','implicit','rule','Sense','delta',sen);
             arrh(j) = h1;
@@ -16,7 +18,7 @@ function [sen,arrh,res] = fixSense( data,dayGrid,u,mres)
     N = numel(dayGrid);
     arrh(N) = getstruct();
     sen1 = 0.002;
-    sen2 = 0.003767;
+    sen2 = 0.003;
     mres1 = getmeanres(sen1);
     mres2 = getmeanres(sen2);
     while abs(mres1-mres)>1e-2

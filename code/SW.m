@@ -13,6 +13,7 @@ function h = SW(data,day,u,varargin)
     %spread = max(h.data.r_ask-h.data.r_bid,1e-4); spread(20:end) = 3e-4;
     %spread = 1e-2*std(data.PX_MID((day-wind:day),u) - data.PX_MID((day-wind)-1:day-1,u));
         spread = 1e-2*mean(abs(data.PX_MID((day-wind:day),u) - data.PX_MID((day-wind)-1:day-1,u)));
+        %spread = 1e-2*std(data.PX_MID((day-wind:day),u));
     %spread = ones(size(u))*3e-4;
     h.method.DeltaSq = diag(spread/2)^2;
     %
