@@ -14,6 +14,11 @@ function h = implicit(h)
     end
     function flag = Sense()
         grad = dxidr'*ann_vec;
+%
+% dxidr0 = -Q*((Q'*H*Q)\diag(U'*D*(1+H*xi)));
+% scale= snsfnc(dxidr0'*ann_vec,DltSq,1);
+% flag = snsfnc(grad,DltSq,scale)< delta;
+%
         flag = snsfnc(grad,DltSq,ann_add + xi'*ann_vec)< delta;
     end
     %
@@ -41,6 +46,7 @@ function h = implicit(h)
     tic;
     flag = true;
     lambda = 1e5;
+    %
     %
     while flag
         xi = zeros(m,1);
@@ -71,6 +77,13 @@ function h = implicit(h)
                 tic;
                 break
             end
+%             %
+%     res(nIter) = norm(sqrtm(DltSq)\dr);
+%     grad = dxidr'*ann_vec;
+%     sns(nIter) = snsfnc(grad,DltSq,ann_add + xi'*ann_vec);
+%     dxidr0 = -Q*inv(Q'*H*Q)*diag(U'*D*(1+H*xi));
+%     snc(nIter) = snsfnc(dxidr0'*ann_vec,DltSq,ann_add + xi'*ann_vec);
+            %
             nIter = nIter+1;
         end
     end
@@ -83,4 +96,13 @@ function h = implicit(h)
     h.result.sense = snsfnc(h.result.grad,DltSq,h.result.annuity);
     h.method.name = 'implicit';
     h.result.time = toc;
+%     %
+%     tmp = gcf;
+%     figure(10)
+%     loglog((1:(nIter-1)),[sns],'displayname','sns');
+%     hold on;
+%     loglog((1:(nIter-1)),[res],'displayname','resid','color','r');
+%     loglog((1:(nIter-1)),[snc],'displayname','snc','color','g');
+%     legend show
+%     figure(tmp);
 end

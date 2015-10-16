@@ -1,5 +1,8 @@
 function [sen,arrh,res] = fixSense( data,dayGrid,u,mres)
+% funtiob find sensitivity level for mean residual == mres in interval
+% dayGrid
     function meanres = getmeanres(sen)
+        % direct problem
         res = zeros(1,N);
         disp(sen);
         fprintf('\b--> %6.2f%%\n',0 )
