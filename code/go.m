@@ -3,7 +3,7 @@
 a = 0.1;
 h0 = SW(data,day,1:30,'alpha',a);
 %
-sen = 0.1*h0.result.sense;
+sen = 0.1*h0.result.sense;%0.003
 h1 = SW(data,day,1:30,'method','implicit','rule','Sense','delta',sen,'alpha',a);
 %
 subplot(2,2,1);

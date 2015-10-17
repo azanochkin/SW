@@ -6,12 +6,11 @@ function h = SW(data,day,u,varargin)
     h.data.r_bid = 1e-2*(data.PX_BID(day,u) - data.CRA(day))';
     h.data.r_ask = 1e-2*(data.PX_ASK(day,u) - data.CRA(day))';
     h.data.r_mid = 1e-2*(data.PX_MID(day,u) - data.CRA(day))';
-    %
+    % determing normalization matrix
     wind = 30;
     %spread = 1e-2*median(data.PX_ASK((day-wind:day),u) - data.PX_BID((day-wind)-1:day-1,u));
     %spread = 1e-2*mean(data.PX_ASK((day-wind:day),u) - data.PX_BID((day-wind)-1:day-1,u));
-    %spread = max(h.data.r_ask-h.data.r_bid,1e-4); spread(20:end) = 3e-4;
-    %spread = 1e-2*std(data.PX_MID((day-wind:day),u) - data.PX_MID((day-wind)-1:day-1,u));
+    %spread = max(h.data.r_ask-h.data.r_bid,1e-4); %spread(20:end) = 3e-4;
         spread = 1e-2*mean(abs(data.PX_MID((day-wind:day),u) - data.PX_MID((day-wind)-1:day-1,u)));
         %spread = 1e-2*std(data.PX_MID((day-wind:day),u));
     %spread = ones(size(u))*3e-4;

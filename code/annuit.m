@@ -20,4 +20,4 @@ for i=1:N
 end
 %plot(daygrid,ann)
 grid on
-plot(daygrid(1:end-1),ann(1,2:end) - ann(1,1:end-1),'.',daygrid(1:end-1) , ann(2,2:end) - ann(2,1:end-1),'+r')
+plot(daygrid(1:end-1),diff(ann(1,:),1),'.',daygrid(1:end-1) , diff(ann(2,:)),'+r')
