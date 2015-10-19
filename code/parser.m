@@ -21,6 +21,8 @@ function h = parser( varargin )
                 h.method.niter = varargin{i+1};
             case 'rule'
                 h.rule.name = varargin{i+1};
+            case 'norm'
+                h.method.normname = varargin{i+1};
             otherwise
                 error(['unknown field : "',varargin{i},'"'])
         end

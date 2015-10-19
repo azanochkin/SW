@@ -19,14 +19,20 @@ function plotSW(arrh,varargin)
     h = gca;
     nextplot = get(h,'NextPlot');
     %
-    p1 = plot(v,100*y,'linestyle','-.','linewidth',1,colorarg{:});
+    p1 = plot(v,100*y,'linestyle','-.','linewidth',1.5,colorarg{:});
     hold on;
     p2 = plot(u,100*spot,'Marker','+','linestyle','none',colorarg{:});
     p3 = plot(v,100*f,'linestyle','-','linewidth',2,colorarg{:});
     if numel(arrh) == 1
-        name = [arrh(1).method.name,'; ',arrh(1).rule.name];
+        %name = arrh.data.date;
+        if strcmp(arrh(1).method.name,'original')
+            name = 'original';
+        else
+            name = 'regularized';
+        end
+        %name = ['regul,; ', arrh(1).method.name,'; ',arrh(1).rule.name];
         set(p1,'DisplayName',['spot curve ',name]);
-        set(p2,'DisplayName',['yield ', name]);
+        set(p2,'DisplayName',['traded maturities ', name]);
         set(p3,'DisplayName',['forward rate ', name]);
     end
     %
