@@ -39,7 +39,7 @@ for j = 1:N
 end
 %% plot statistics 
 % filter window
-wndSize = 1; 
+wndSize = 20; 
 %
 plot(medianfilter(wndSize,res),'displayname','normalized residual')
 hold on
@@ -47,6 +47,6 @@ plot(medianfilter(wndSize,clres),'g','displayname','non-normalized residual')
 %plot(medianfilter(wndSize,(ann - sum((1.042).^(-(1:100))))/4),'k','displayname','annuity - annuity(UFR)')
 plot(medianfilter(wndSize,(ann)/10),'m','displayname','annuity')
 plot(medianfilter(wndSize,vol),'r','displayname','volatility')
-plot(medianfilter(wndSize,3e1*smt),'c','displayname','smootness')
+plot(medianfilter(wndSize,1e1*smt),'c','displayname','smootness')
 %plot(medianfilter(wndSize,3e2*snsbeg),'c','displayname','original sense')
 legend show

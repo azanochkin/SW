@@ -1,6 +1,6 @@
 function h = original(h)
     tic;
-    h.method.r0 = h.data.r_mid;
+    %h.method.r0 = h.data.r_mid;
     [m,n,p,U,D,Q0,q0,H,ann_vec,ann_add] = getInitData(h);
     beta = (Q0'*H*Q0)\(p-q0);
     xi = Q0*beta;
