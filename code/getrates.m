@@ -21,15 +21,19 @@ function [ v, y, f] = getrates( arrh, T)
         H = Wilson_Heart(a,v,u);
         G = Wilson_G(a,v,u);
 
-        %%%%%%%%%%%%%%%%%%%%% spot rate
-        %H = Wilson_Heart(a,u,u);
-        %spot = w - log(1+H*xi)./u;
-        
-        %%%%%%%%%%%%%%%%%%%%% forvard intensity
-        f(:,i) = w - (G*xi)./(1+H*xi);
-        
-        %%%%%%%%%%%%%%%%%%%%% yield
-        y(:,i) = w - log(1+H*xi)./v;
+        switch arrh(i).method.functional
+            case 'original'
+                %%%%%%%%%%%%%%%%%%%%% forvard intensity
+                f(:,i) = w - (G*xi)./(1+H*xi);
+                %%%%%%%%%%%%%%%%%%%%% yield
+                y(:,i) = w - log(1+H*xi)./v;        
+                %%%%%%%%%%%%%%%%%%%%% spot rate
+                %H = Wilson_Heart(a,u,u);
+                %spot = w - log(1+H*xi)./u;
+            case 'new'
+                f(:,i) = w - G*xi;
+                y(:,i) = w - (H*xi)./v;
+        end
         indNaN = v==0;
         y(indNaN,i) = f(indNaN,i);
     end

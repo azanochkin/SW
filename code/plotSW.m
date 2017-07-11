@@ -25,10 +25,10 @@ function h = plotSW(arrh,varargin)
     %
     nextplot = get(gca,'NextPlot');
     %
-    h(1) = plot(v,100*y,'linestyle','-.','linewidth',0.5,colorarg{:},...
+    h(:,1) = plot(v,100*y,'linestyle','-.','linewidth',0.5,colorarg{:},...
         marker{:},'MarkerIndices',1:MarkerIndices:length(v));
     hold on;
-    h(2) = plot(v,100*f,'linestyle','-','linewidth',1,colorarg{:},...
+    h(:,2) = plot(v,100*f,'linestyle','-','linewidth',1,colorarg{:},...
         marker{:},'MarkerIndices',1:MarkerIndices:length(v));
     %h(3) = plot(u,100*spot,'linestyle','none',marker{:},colorarg{:});
     %h(4) = plot(u,100*fy,'linestyle','none',marker{:},colorarg{:});
@@ -45,6 +45,11 @@ function h = plotSW(arrh,varargin)
         set(h(2),'DisplayName',['forward rate ', name]);
     end
     %
+%     yl = ylim();
+%     if yl(2)>30
+%         yl(2) = 100*max(max([y(v<30,:) f(v<30,:)]));
+%     end
+%     ylim(yl);
     set(gca,'NextPlot',nextplot);
     %legend(,'location','southeast')
     xlabel 'Term, years'

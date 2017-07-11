@@ -3,6 +3,8 @@ function h = parser( varargin )
     i = 1;
     while nargin>i
         switch varargin{i}
+            case 'functional'
+                h.method.functional = varargin{i+1};
             case 'method'
                 h.method.name = varargin{i+1};
             case 'UFR'

@@ -6,7 +6,7 @@ function h = original(h)
     xi = Q0*beta;
     dxidr = -Q0*inv(Q0'*H*Q0)*diag(U'*D*(1+H*xi));
     %
-    h.result.r = h.data.r_mid;
+    h.result.r = h.method.r0;
     h.result.xi = xi;
     h.result.dxi = dxidr;
     h.result.grad = dxidr'*ann_vec;

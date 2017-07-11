@@ -7,11 +7,18 @@ sen = 0.03*h0.result.sense;%0.003
 %h1 = SW(data,day,1:20,'method','implicit','rule','l2','delta',sqrt(20),'norm','volatility');
 h1 = SW(data,day,1:30,'method','cauchy','rule','linf','delta',1,'norm','spread');
 %%
+h0 = SW(data,day,1:30,'functional','new','nsubiter',5,'alpha',0.01,'UFR',0.01);
+h2 = SW(data,day,1:30,'alpha',0.01,'UFR',0.01);
+h1 = SW(data,day,1:30,'method','iterative','rule','l2','delta',sqrt(20),...
+    'functional','new','nsubiter',5,'alpha',0.01,'UFR',0.01);
+%%
 subplot(4,2,[1,3,5]);
 %subplot(1,2,1);
-plotSW(h0,'color',[0 0 0]);
+plotSW(h0,'time',100,'color',[0 0 0]);
+ylim('manual');
 hold on;
-plotSW(h1,'time',60,'color',[1 0.4 0]);
+plotSW(h1,'time',100,'color',[1 0.4 0]);
+plotSW(h2,'time',100,'color',[0.4 0.4 1]);
 %
 %plotSW(SW(data,day,1:30,'method','implicit','rule','Sense','delta',0.15*h0.result.sense,'norm','volatility'),'time',60,'color',[0 0.9 0.2]);
 legend('location','southeast')
@@ -30,5 +37,6 @@ ylabel 'Sensitivity, %'
 xlabel 'Term, years'
 axis([-1 31 -0.15 0.15])
 title(['Regul.sens = ',num2str(100*h1.result.sense,'%6.2f'),'%, or ', num2str(100*h1.result.sense/h0.result.sense,'%6.2f'),'% of SW sens.'])
+%%
 subplot(1,2,2);
 plotrates(h1);
