@@ -19,6 +19,8 @@ function h = original_new(h)
         dxidr = A*(N - Q0_xi*((Q0_xi'*H*A*Q0_xi)\(M+Q0_xi'*H*A*N)) );
     end
     %
+    ddr = [eye(m) - diag(xi)*H , -Q0_xi; -Q0_xi'*H, zeros(n)]\[N; M];
+    %
     h.result.r = h.method.r0;
     h.result.xi = xi;
     h.result.dxi = dxidr;

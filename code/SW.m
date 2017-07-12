@@ -62,7 +62,7 @@ function h = SW(data,day,u,varargin)
                     error('not a method name')
             end
         case 'new'
-            if h.method.nsubiter < 5
+            if h.method.nsubiter < 3
                 warning('Small number of subiterations');
             end
             switch h.method.name

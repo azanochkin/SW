@@ -45,7 +45,6 @@ function h = iterative_new(h)
             error('undefined rule');
     end
     %
-    %dr_prev = zeros(n,1);
     lambda = 1e5;
     q = 0.99;
     flag = true;
@@ -69,24 +68,24 @@ function h = iterative_new(h)
                 dxj = Q_xj*beta;
                 Q = Q0 + D*U*diag(dr);          
             end
-            xi = xi + dxj;        
-            %Du = D*(1+H*xi);
-            %M = diag(U'*Du)+Q'*H*D*U*diag(beta);
-            %N = -(Q/(Q'*H*Q))*diag(U'*Du);
-            %drdr = (eye(n) - lambda*DltSq*M'*inv(Q'*H*Q+lambda*M*DltSq*M')*M)*(eye(n)+lambda*DltSq*N'*H*dxidr);
-            %dxidr = N*drdr;
+            xi = xi + dxj;
+            eHxi = exp(H*xi);
+            Q_xi = diag(eHxi)*Q;
+            M = diag(U'*D*eHxi);
+            N = diag(eHxi)*D*U*diag(beta);
+            A = [eye(m) - diag(xi)*H,    -Q_xi, -N;...
+                   -Q_xi'*H         , zeros(n), -M;...
+                   -N'*H            ,      -M', invDltSq/lambda];
+            ddr = A\[dxidr;zeros(n);invDltSq/lambda];
+            dxidr = ddr(1:m,:);
+            drdr = ddr((end-n+1):end,:);
         end
         flag = events();
         lambda = lambda*q;
-        %dr_prev = dr;
     end
     h.result.xi = xi;
     h.result.dxi = dxidr;
     h.result.r = h.method.r0 + dr;
-    %h.result.grad = dxidr'*ann_vec;
-    %h.result.annuity = ann_add + xi'*ann_vec;
-    %h.result.sense = snsfnc(h.result.grad,DltSq,h.result.annuity);
-    %h.method.name = 'iterative';
     h.result.time = toc;
 end
 
