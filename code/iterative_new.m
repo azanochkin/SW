@@ -65,7 +65,7 @@ function h = iterative_new(h)
                 beta = (Q0_xj'*H*Q_xj+lambda*tld*DltSq*tld)\...
                     (p - Q0_xj'*(1-H*dxj));
                 dr = lambda * DltSq * tld * beta;
-                fprintf('%i > %i: norm = %6.4f\n',i,j,norm( dxj - Q_xj*beta));
+                %fprintf('%i > %i: norm = %6.4f\n',i,j,norm( dxj - Q_xj*beta));
                 dxj = Q_xj*beta;
                 Q = Q0 + D*U*diag(dr);          
             end

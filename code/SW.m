@@ -77,6 +77,7 @@ function h = SW(data,day,u,varargin)
                 otherwise
                     error('not a method name')
             end
+            h = getannuit_new(h);
         otherwise
             error('Unknown functional type')
     end
