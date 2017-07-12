@@ -74,6 +74,8 @@ function h = SW(data,day,u,varargin)
                     h.method.name = 'Tikhonov';
                 case 'iterative'
                     h = iterative_new(h);
+                case 'implicit'
+                    h = implicit_new(h);
                 otherwise
                     error('not a method name')
             end

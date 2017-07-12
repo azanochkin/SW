@@ -1,6 +1,6 @@
 function h = original_new(h)
     tic;
-    [m,n,p,U,D,Q0,q0,H,ann_vec,ann_add] = getInitData(h);
+    [m,n,p,U,D,Q0,q0,H] = getInitData(h);
     nsubiter = h.method.nsubiter;
     %%
     xi = zeros(m,1);
