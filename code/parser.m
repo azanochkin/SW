@@ -25,6 +25,13 @@ function h = parser( varargin )
                 h.rule.name = varargin{i+1};
             case 'norm'
                 h.method.normname = varargin{i+1};
+            case 'profile'
+                profMat = varargin{i+1};
+                if size(profMat,2)~=2
+                    error('profMat will be k \times 2 matrix.')
+                end
+                h.data.u_ann = profMat(:,1);
+                h.data.profile = profMat(:,2);
             otherwise
                 error(['unknown field : "',varargin{i},'"'])
         end

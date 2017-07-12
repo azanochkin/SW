@@ -5,11 +5,14 @@
 %h1 = SW(data,day,1:20,'method','implicit','rule','l2','delta',sqrt(20),'norm','volatility');
 %h1 = SW(data,day,1:30,'method','cauchy','rule','linf','delta',1,'norm','spread');
 %%
-h0 = SW(data,day,1:20,'functional','new','nsubiter',5,'alpha',0.1,'UFR',0.04);
-h1 = SW(data,day,1:20,'alpha',0.1,'UFR',0.04);
+h0 = SW(data,day,1:20,'functional','new','nsubiter',5,...
+    'alpha',0.1,'UFR',0.04,...
+    'profile',[1:100; 1./(1:100)]');
+h1 = SW(data,day,1:20,'alpha',0.1,'UFR',0.04,...
+    'profile',[1:100; 1./(1:100)]');
 %h2 = SW(data,day,1:30,'method','iterative','rule','l2','delta',sqrt(20),...
 %    'functional','new','nsubiter',5,'alpha',0.01,'UFR',0.01);
-%%
+%
 subplot(4,2,[1,3,5]);
 %subplot(1,2,1);
 plotSW(h0,'time',100,'color',[0 0 0]);
@@ -39,6 +42,6 @@ xlabel 'Term, years'
 xlim([0 30])
 %axis([-1 31 -10.25 10.25])
 title(['Regul.sens = ',num2str(100*h1.result.sense,'%6.2f'),'%, or ', num2str(100*h1.result.sense/h0.result.sense,'%6.2f'),'% of SW sens.'])
-%%
+%
 subplot(1,2,2);
 plotrates(h1);
