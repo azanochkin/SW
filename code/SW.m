@@ -71,11 +71,12 @@ function h = SW(data,day,u,varargin)
                 case 'Tikhonov'
                     h.method.niter = 1;
                     h = iterative_new(h);
-                    h.method.name = 'Tikhonov';
                 case 'iterative'
                     h = iterative_new(h);
                 case 'implicit'
                     h = implicit_new(h);
+                case 'cauchy'
+                    h = cauchy_new(h);
                 otherwise
                     error('not a method name')
             end
