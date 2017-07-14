@@ -18,8 +18,9 @@ function [ v, y, f] = getrates( arrh, T)
         xi = arrh(i).result.xi;
         w = arrh(i).method.ufr;
         a = arrh(i).method.alpha;
-        H = Wilson_Heart(a,v,u);
-        G = Wilson_G(a,v,u);
+        kernel = arrh(i).method.kernel;
+        H = Wilson_Heart(a,v,u,kernel);
+        G = Wilson_G(a,v,u,kernel);
 
         switch arrh(i).method.functional
             case 'original'
@@ -28,7 +29,7 @@ function [ v, y, f] = getrates( arrh, T)
                 %%%%%%%%%%%%%%%%%%%%% yield
                 y(:,i) = w - log(1+H*xi)./v;        
                 %%%%%%%%%%%%%%%%%%%%% spot rate
-                %H = Wilson_Heart(a,u,u);
+                %H = Wilson_Heart(a,u,u,kernel);
                 %spot = w - log(1+H*xi)./u;
             case 'new'
                 f(:,i) = w - G*xi;

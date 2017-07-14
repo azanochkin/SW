@@ -7,6 +7,8 @@ function h = parser( varargin )
                 h.method.functional = varargin{i+1};
             case 'method'
                 h.method.name = varargin{i+1};
+            case 'kernel'
+                h.method.kernel = varargin{i+1};
             case 'UFR'
                 h.method.ufr = varargin{i+1};
             case 'alpha'

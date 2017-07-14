@@ -5,7 +5,8 @@ pr = h.data.profile;
 u = h.data.u;
 w = h.method.ufr;
 a = h.method.alpha;
-H = Wilson_Heart(a,v,u);
+kernel = h.method.kernel;
+H = Wilson_Heart(a,v,u,kernel);
 %
 xi = h.result.xi;
 dxi = h.result.dxi;
