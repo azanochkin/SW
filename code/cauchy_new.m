@@ -34,7 +34,7 @@ function h = cauchy_new(h)
         eHxi = exp(H*xi);
         tld = U'*D*eHxi;
         dr = (p - Q0'*eHxi)./tld;
-        value = max(abs(sqrtm(invDltSq)*dr)) - 1;%delta;????
+        value = max(abs(sqrtm(invDltSq)*dr)) - delta;
         isterminal = 1;
         direction = 0;
     end
@@ -79,7 +79,7 @@ function h = cauchy_new(h)
                      'abstol',1e-4,'reltol',1e-2);
     tic;
     %
-    [~,Xi,~,~,ie] = ode15s(@odefun,[0 5e1],Xi,options);
+    [~,Xi,~,~,ie] = ode15s(@odefun,[0 2e1],Xi,options);
     if isempty(ie)
         warning(['Cauchy_new : condition is not fulfilled. ',...
                  'Change reg. parametr interval'])

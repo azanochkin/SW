@@ -43,38 +43,35 @@ function h = implicit_new(h)
     lambda = 1e3;
     while flag
         xi = zeros(m,1);
-        dxj = zeros(m,1);
+        dxi = zeros(m,1);
         dxidr = zeros(m,n);
         Q = Q0;
         %
         nIter = 0;
         while flag
             for j = 1:nsubiter
-                eHxj = exp(H*(xi+dxj));
+                eHxj = exp(H*(xi+dxi));
                 Q0_xj = diag(eHxj)*Q0;
                 Q_xj = diag(eHxj)*Q;
                 tld = diag(U'*D*eHxj);
                 beta = (Q0_xj'*H*Q_xj+lambda*tld*DltSq*tld)\...
-                    (p - Q0_xj'*(1-H*dxj));
+                    (p - Q0_xj'*(1-H*dxi));
                 dr = lambda * DltSq * tld * beta;
 %                 fprintf('%4i > %3i: norm = %6.10f\n',nIter,j,...
 %                     norm( dxj - Q_xj*beta)/norm(dxj));
-                dxj = Q_xj*beta;
+                dxi = Q_xj*beta;
                 Q = Q0 + D*U*diag(dr);  
             end
-            xi = xi + dxj;
+            xi = xi + dxi;
             eHxi = exp(H*xi);
             Q_xi = diag(eHxi)*Q;
             M = diag(U'*D*eHxi);
             N = diag(eHxi)*D*U*diag(beta);
-            A = [ H - H*diag(dxj)*H,  -H*Q_xi, -H*N;...
+            A = [H - H*diag(dxi)*H,  -H*Q_xi, -H*N;...
                  -(H*Q_xi)'       , zeros(n),   -M;...
                  -(H*N)'          ,      -M', invDltSq/lambda];
             A = 0.5*(A+A');
             ddr = A\[H*dxidr; zeros(n); invDltSq/lambda];
-            if any(isnan(ddr(:)))
-                1;
-            end
             dxidr = ddr(1:m,:);
             drdr = ddr((end-n+1):end,:);
             %    
