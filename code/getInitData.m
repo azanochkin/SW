@@ -9,10 +9,11 @@ function [ m,n,p,U,D,Q0,q0,H,ann_vec,ann_add] = getInitData(h)
     n = length(r0);
 
     p = ones(n,1);
+    [tenorGrid,uGrid] = meshgrid(tenor,u);
     U = zeros(m,n);
-    U(u<=tenor') = 1;
+    U(uGrid<=tenorGrid) = 1;
     E = zeros(m,n);
-    E(u==tenor') = 1;
+    E(uGrid==tenorGrid) = 1;
     C0 = E + U * diag(r0);
 
     d = exp(-w*u);
