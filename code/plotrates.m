@@ -1,5 +1,5 @@
 function plotrates(h)
-    u = h.data.u;
+    tenor = h.data.tenor;
     r_min = h.data.r_bid;
     r_max = h.data.r_ask;
     r_mid = h.data.r_mid;
@@ -8,8 +8,8 @@ function plotrates(h)
     %subplot(2,2,2)
     hold on
     vec = sqrt(diag(h.method.DeltaSq));
-    plot(u,1e4*(r_min-r0),'b^-',u,1e4*(r_max-r0),'rv-',...
-         u,1e4*(r_mid-r0), 'g+',u,1e4*(r-r0),'k*');%,u,-1e4*vec,'c--')
+    plot(tenor,1e4*(r_min-r0),'b^-',tenor,1e4*(r_max-r0),'rv-',...
+         tenor,1e4*(r_mid-r0), 'g+',tenor,1e4*(r-r0),'k*');%,u,-1e4*vec,'c--')
     hold on;
     %plot(u,1e4*[vec,-vec],'color',[0.3,0.8,0.3],'Linestyle','--','linewidth',2);
     hold off;
