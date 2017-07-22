@@ -19,9 +19,20 @@ function h = plotSW(arrh,varargin)
         end
         i = i+2;
     end
-    [ v, y, f] = getrates( arrh, T );
+    N_grid = 300;
+    switch numel(T)
+        case 0
+            v = arrh(1).data.u;
+        case 1
+            v = linspace(0,T,N_grid)';
+        case 2
+            v = linspace(T(1),T(2),N_grid)';
+        otherwise
+            v = T(:);
+    end
+    [ y, f] = getrates( arrh,v );
     %[ u, spot, fy] = getrates( arrh, []);
-    [ u, spot, fy] = getrates( arrh, 1:2:T);
+    %[ u, spot, fy] = getrates( arrh, 1:2:T);
     %
     nextplot = get(gca,'NextPlot');
     %

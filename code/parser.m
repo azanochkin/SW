@@ -11,6 +11,12 @@ function h = parser( varargin )
                 h.method.kernel = varargin{i+1};
             case 'UFR'
                 h.method.ufr = varargin{i+1};
+            case 'tau'
+                h.method.tau = varargin{i+1};
+            case 'tautol'
+                h.method.tautol = varargin{i+1};
+            case 'convpnt'
+                h.method.convpnt = varargin{i+1};
             case 'alpha'
                 h.method.alpha = varargin{i+1};
             case 'delta'

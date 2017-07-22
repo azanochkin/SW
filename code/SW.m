@@ -48,23 +48,23 @@ function h = SW(data,date,varargin)
     end
     switch h.method.functional
         case 'original'
+            getannuit = @(h)h;
             switch h.method.name
                 case 'original'
-                    h = original(h);
+                    method = @original;
                 case 'bounded'
-                    h = bounded(h);
+                    method = @bounded;
                 case 'Tikhonov'
                     h.method.niter = 1;
-                    h = iterative(h);
-                    h.method.name = 'Tikhonov';
+                    method = @iterative;
                 case 'iterative'
-                    h = iterative(h);
+                    method = @iterative;
                 case 'explicit'
-                    h = explicit(h);
+                    method = @explicit;
                 case 'implicit'
-                    h = implicit(h);
+                    method = @implicit;
                 case 'cauchy'
-                    h = cauchy(h);
+                    method = @cauchy;
                 otherwise
                     error('not a method name')
             end
@@ -72,25 +72,29 @@ function h = SW(data,date,varargin)
             if h.method.nsubiter < 3
                 warning('Small number of subiterations');
             end
+            getannuit = @getannuit_new;
             switch h.method.name
                 case 'original'
-                    h = original_new(h);
+                    method = @original_new;
                 case 'Tikhonov'
                     h.method.niter = 1;
-                    h = iterative_new(h);
+                    method = @iterative_new;
                 case 'iterative'
-                    h = iterative_new(h);
+                    method = @iterative_new;
                 case 'implicit'
-                    h = implicit_new(h);
+                    method = @implicit_new;
                 case 'cauchy'
-                    h = cauchy_new(h);
+                    method = @cauchy_new;
                 otherwise
                     error('not a method name')
             end
-            h = getannuit_new(h);
         otherwise
             error('Unknown functional type')
     end
-    
+    h = method(h);
+    if ~isempty(h.method.tau) && ~isempty(h.method.convpnt)
+        h = convPoint( h, method );
+    end
+    h = getannuit(h);
 end
 

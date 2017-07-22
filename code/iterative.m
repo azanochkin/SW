@@ -81,7 +81,7 @@ function h = iterative(h)
     h.result.grad = dxidr'*ann_vec;
     h.result.annuity = ann_add + xi'*ann_vec;
     h.result.sense = snsfnc(h.result.grad,DltSq,h.result.annuity);
-    h.method.name = 'iterative';
+    %h.method.name = 'iterative';
     h.result.time = toc;
 end
 
