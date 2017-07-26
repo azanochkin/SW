@@ -73,9 +73,10 @@ function h = iterative_new(h)
     %
     tic;
     options = optimset('TolX',1e-9,'Display','notify');
-    %lambda = fzero(@(l)events(fun(l)),[1e-1 1e5],options);
-    lambda = 1e3;
-    [dr,xi,dxidr] = fun(lambda);
+    if isempty(h.rule.lambda)
+        h.rule.lambda = fzero(@(l)events(fun(l)),[1e-1 1e5],options);
+    end
+    [dr,xi,dxidr] = fun(h.rule.lambda);
     h.result.xi = xi;
     h.result.dxi = dxidr;
     h.result.r = h.method.r0 + dr;

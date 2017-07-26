@@ -96,7 +96,7 @@ function h = SW(data,date,varargin)
             error('Unknown functional type')
     end
     h = method(h);
-    if ~isempty(h.method.tau) && ~isempty(h.method.convpnt)
+    if ~h.method.fixalpha
         h = convPoint( h, method );
     end
     h = getannuit(h);

@@ -76,15 +76,19 @@ function h = cauchy_new(h)
         otherwise
             error('undefined rule');
     end
-    options = odeset('Events',events,'BDF','on',...
-                     'abstol',1e-6,'reltol',1e-4);
     tic;
-    %
-    [~,Xi,~,~,ie] = ode15s(@odefun,[0 5e-4],Xi,options);
-%     if isempty(ie)
-%         warning(['Cauchy_new : condition is not fulfilled. ',...
-%                  'Change reg. parametr interval'])
-%     end
+    options = odeset('BDF','on','abstol',1e-6,'reltol',1e-4);
+    if isempty(h.rule.lambda)
+        options = odeset(options,'Events',events);
+        [t,Xi,~,~,ie] = ode15s(@odefun,[0 2e1],Xi,options);
+        if isempty(ie)
+            warning(['Cauchy_new : condition is not fulfilled. ',...
+                     'Change reg. parametr interval'])
+        end
+    else
+        [t,Xi] = ode15s(@odefun,[0 h.rule.lambda],Xi,options);
+    end
+    h.rule.lambda = t;
     xi = Xi(end,1:m)';
     dxidr = reshape(Xi(end,(m+1):end),[m,n])/denormdxidr;
     %

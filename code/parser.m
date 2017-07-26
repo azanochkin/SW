@@ -17,8 +17,12 @@ function h = parser( varargin )
                 h.method.tautol = varargin{i+1};
             case 'convpnt'
                 h.method.convpnt = varargin{i+1};
+            case 'fixalpha'
+                h.method.fixalpha = varargin{i+1};                
             case 'alpha'
                 h.method.alpha = varargin{i+1};
+            case 'lambda'
+                h.rule.lambda = varargin{i+1};
             case 'delta'
                 h.rule.delta = varargin{i+1};
             case 'nsubiter'

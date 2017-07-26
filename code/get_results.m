@@ -3,28 +3,26 @@ load ./data/data_update_may2015.mat
 %% Different methods results
 alpha = 0.12;
 T = 30;
-tau = 1e-4;
-convpnt = 60;
 UFR = 0.0365;
 kernel = 'SW';
 prof = data.profile;
+isfixalpha = false;
 opt1 = {'functional','original','nsubiter',5,...
     'UFR',UFR,'kernel',kernel,...
-    'profile',prof};
-opt2 = {'method','cauchy','rule','l2','delta',sqrt(0),...
+    'profile',prof,'fixalpha',isfixalpha};
+opt2 = {'method','Tikhonov','lambda',6e2,...%'rule','l2','delta',sqrt(10),...
     'functional','new','nsubiter',5,'norm','simple',...
     'UFR',UFR,'kernel',kernel,...
-    'profile',prof};
+    'profile',prof,'fixalpha',isfixalpha};
 opt3 = {'functional','new','nsubiter',5,...
     'UFR',UFR,'kernel',kernel,...
-    'profile',prof};
-cvp = {'tau',tau,'convpnt',convpnt};
+    'profile',prof,'fixalpha',isfixalpha};
 results=cell(length(data.Date),3);
 for i=1:length(data.Date)
     dt=data.Date{i};
-    results{i,1} = SW(data,dt,opt1{:},cvp{:},'alpha',alpha);
-    results{i,2} = SW(data,dt,opt2{:},cvp{:},'alpha',results{i,1}.method.alpha);
-    results{i,3} = SW(data,dt,opt3{:},cvp{:},'alpha',results{i,2}.method.alpha);
+    results{i,1} = SW(data,dt,opt1{:},'alpha',alpha);
+    results{i,2} = SW(data,dt,opt2{:},'alpha',results{i,1}.method.alpha);
+    results{i,3} = SW(data,dt,opt3{:},'alpha',results{i,2}.method.alpha);
     fprintf('Step %d of %d.\n',i,length(data.Date));
 %     clf
 %     subplot(1,2,1);
@@ -48,7 +46,7 @@ dr1=dr';
 dr2=-dr';
 dr3=0.0001*double(dr~=0)';
 dr4=-0.0001*double(dr~=0)';
-coef = 1e-2;
+coef = 1e0;
 dr1 = coef*dr1; dr2 = coef*dr2;
 dr3 = coef*dr3; dr4 = coef*dr4;
 data1=data;
@@ -80,20 +78,20 @@ for i=1:length(data.Date)
     data4.PX_BID(i,:)=data4.PX_BID(i,:)+100*dr4;
     data4.PX_MID(i,:)=data4.PX_MID(i,:)+100*dr4;
     %
-    sens{i,1} = SW(data1,dt,opt1{:},cvp{:},'alpha',results{i,1}.method.alpha);
-    sens{i,2} = SW(data2,dt,opt1{:},cvp{:},'alpha',results{i,1}.method.alpha);
-    sens{i,3} = SW(data3,dt,opt1{:},cvp{:},'alpha',results{i,1}.method.alpha);
-    sens{i,4} = SW(data4,dt,opt1{:},cvp{:},'alpha',results{i,1}.method.alpha);
+    sens{i,1} = SW(data1,dt,opt1{:},'alpha',results{i,1}.method.alpha);
+    sens{i,2} = SW(data2,dt,opt1{:},'alpha',results{i,1}.method.alpha);
+    sens{i,3} = SW(data3,dt,opt1{:},'alpha',results{i,1}.method.alpha);
+    sens{i,4} = SW(data4,dt,opt1{:},'alpha',results{i,1}.method.alpha);
 
-    sens{i,5} = SW(data1,dt,opt2{:},cvp{:},'alpha',results{i,2}.method.alpha);
-    sens{i,6} = SW(data2,dt,opt2{:},cvp{:},'alpha',results{i,2}.method.alpha);
-    sens{i,7} = SW(data3,dt,opt2{:},cvp{:},'alpha',results{i,2}.method.alpha);
-    sens{i,8} = SW(data4,dt,opt2{:},cvp{:},'alpha',results{i,2}.method.alpha);
+    sens{i,5} = SW(data1,dt,opt2{:},'alpha',results{i,2}.method.alpha);
+    sens{i,6} = SW(data2,dt,opt2{:},'alpha',results{i,2}.method.alpha);
+    sens{i,7} = SW(data3,dt,opt2{:},'alpha',results{i,2}.method.alpha);
+    sens{i,8} = SW(data4,dt,opt2{:},'alpha',results{i,2}.method.alpha);
 
-    sens{i,9} = SW(data1,dt,opt3{:},cvp{:},'alpha',results{i,3}.method.alpha);
-    sens{i,10} = SW(data2,dt,opt3{:},cvp{:},'alpha',results{i,3}.method.alpha);
-    sens{i,11} = SW(data3,dt,opt3{:},cvp{:},'alpha',results{i,3}.method.alpha);
-    sens{i,12} = SW(data4,dt,opt3{:},cvp{:},'alpha',results{i,3}.method.alpha);
+    sens{i,9} = SW(data1,dt,opt3{:},'alpha',results{i,3}.method.alpha);
+    sens{i,10} = SW(data2,dt,opt3{:},'alpha',results{i,3}.method.alpha);
+    sens{i,11} = SW(data3,dt,opt3{:},'alpha',results{i,3}.method.alpha);
+    sens{i,12} = SW(data4,dt,opt3{:},'alpha',results{i,3}.method.alpha);
     % 
     fprintf('Step %d of %d.\n',i,length(data.Date));
 end
