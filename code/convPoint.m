@@ -14,7 +14,7 @@ function h = convPoint( h, method )
             itcnt = itcnt + 1;
             h.method.alpha = h.method.alpha - log(tau/df)/(convpnt - llp);
             h = method(h);
-            fprintf('conv iter %2i: alpha = %7.5f\n',itcnt,h.method.alpha);
+            %fprintf('conv iter %2i: alpha = %7.5f\n',itcnt,h.method.alpha);
         end
     end
 end

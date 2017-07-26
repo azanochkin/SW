@@ -37,14 +37,16 @@ ylabel('%')
 %% Sensitivity 
 mat=nan(size(sens)); 
 mat2=nan(size(sens)); 
+% mat3=nan(size(sens)); 
 dr = [dr1;dr2;dr3;dr4];
 for day=1:558
 for i=1:12
     k = fix((i-1)/4)+1;
     j = mod(i-1,4)+1;
-    mat(day,i)=100*(sens{day,i}.result.annuity-results{day,k}.result.annuity)/results{day,k}.result.annuity;
+    mat(day,i)=100*(sens{day,i}.result.annuity/results{day,k}.result.annuity-1);
     ism = ismember(data.tenor,results{day,k}.data.tenor);
     mat2(day,i) = 100*(dr(j,ism)*results{day,k}.result.grad)/results{day,k}.result.annuity;
+%     mat3(day,i) = 100*(sens{day,i}.method.alpha / results{day,k}.method.alpha - 1);
 end
 end
 % Impact of data changes
