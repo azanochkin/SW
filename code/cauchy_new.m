@@ -34,7 +34,7 @@ function h = cauchy_new(h)
         eHxi = exp(H*xi);
         tld = U'*D*eHxi;
         dr = (p - Q0'*eHxi)./tld;
-        value = max(abs(sqrtm(invDltSq)*dr)) - delta;
+        value = max(abs(sqrtinvDltSq*dr)) - delta;
         isterminal = 1;
         direction = 0;
     end
@@ -60,6 +60,7 @@ function h = cauchy_new(h)
     Xi = zeros(m+m*n,1);
     DltSq = h.method.DeltaSq;
     invDltSq = inv(DltSq);
+    sqrtinvDltSq = sqrtm(invDltSq);
     delta = h.rule.delta;
     snsfnc = sensefnc(h);
     %
@@ -76,7 +77,7 @@ function h = cauchy_new(h)
             error('undefined rule');
     end
     options = odeset('Events',events,'BDF','on',...
-                     'abstol',1e-4,'reltol',1e-2);
+                     'abstol',1e-5,'reltol',1e-3);
     tic;
     %
     [~,Xi,~,~,ie] = ode15s(@odefun,[0 2e1],Xi,options);

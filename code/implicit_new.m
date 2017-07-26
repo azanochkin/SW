@@ -40,7 +40,7 @@ function h = implicit_new(h)
     end
     tic;
     flag = true;
-    lambda = 1e3;
+    lambda = 1e5;
     while flag
         xi = zeros(m,1);
         dxi = zeros(m,1);
@@ -79,6 +79,7 @@ function h = implicit_new(h)
             nIter = nIter+1;
             if toc>3
                 lambda = lambda/10;
+                warning('lambda')
                 tic;
                 break
             end
