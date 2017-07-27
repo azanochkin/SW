@@ -4,18 +4,19 @@ load ./data/data_update_may2015.mat
 alpha = 0.12;
 T = 30;
 UFR = 0.0365;
-kernel = 'SW';
 prof = data.profile;
 isfixalpha = false;
+fndderiv = false;
 opt1 = {'functional','original','nsubiter',5,...
-    'UFR',UFR,'kernel',kernel,...
+    'UFR',UFR,'fndderiv',fndderiv,...
     'profile',prof,'fixalpha',isfixalpha};
-opt2 = {'method','Tikhonov','lambda',6e2,...%'rule','l2','delta',sqrt(10),...
+opt2 = {'method','cauchy','lambda',5e-4,...
+...%opt2 = {'method','Tikhonov','lambda',5e2,...
     'functional','new','nsubiter',5,'norm','simple',...
-    'UFR',UFR,'kernel',kernel,...
+    'UFR',UFR,'fndderiv',fndderiv,...
     'profile',prof,'fixalpha',isfixalpha};
 opt3 = {'functional','new','nsubiter',5,...
-    'UFR',UFR,'kernel',kernel,...
+    'UFR',UFR,'fndderiv',fndderiv,...
     'profile',prof,'fixalpha',isfixalpha};
 results=cell(length(data.Date),3);
 for i=1:length(data.Date)
@@ -24,16 +25,18 @@ for i=1:length(data.Date)
     results{i,2} = SW(data,dt,opt2{:},'alpha',results{i,1}.method.alpha);
     results{i,3} = SW(data,dt,opt3{:},'alpha',results{i,2}.method.alpha);
     fprintf('Step %d of %d.\n',i,length(data.Date));
-%     clf
-%     subplot(1,2,1);
-%     plotSW(results{i,3},'time',T,'color',[0 0 0]);
-%     ylim('manual');
-%     hold on;
-%     plotSW(results{i,2},'time',T,'color',[1 0.4 0]);
-%     legend('location','southeast')
-%     title(results{i,3}.data.date)
-%     plotrates(results{i,2});
-%     pause(0.1)
+    if true
+        clf
+        subplot(1,2,1);
+        plotSW(results{i,3},'time',T,'color',[0 0 0]);
+        ylim('manual');
+        hold on;
+        plotSW(results{i,2},'time',T,'color',[1 0.4 0]);
+        legend('location','southeast')
+        title(results{i,3}.data.date)
+        plotrates(results{i,2});
+        pause(0.1)
+    end
 end
 %% Sensitivity results 
 close all

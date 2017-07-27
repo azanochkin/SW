@@ -18,17 +18,19 @@ function h = iterative_new(h)
                 Q = Q0 + D*U*diag(dr);          
             end
             xi = xi + dxj;
-            eHxi = exp(H*xi);
-            Q_xi = diag(eHxi)*Q;
-            M = diag(U'*D*eHxi);
-            N = diag(eHxi)*D*U*diag(beta);
-            A = [ H - H*diag(dxj)*H,  -H*Q_xi, -H*N;...
-                 -(H*Q_xi)'       , zeros(n),   -M;...
-                 -(H*N)'          ,      -M', invDltSq/lambda];
-            A = 0.5*(A+A');
-            ddr = A\[H*dxidr; zeros(n); invDltSq/lambda];
-            dxidr = ddr(1:m,:);
-            drdr = ddr((end-n+1):end,:);
+            if isfndderiv
+                eHxi = exp(H*xi);
+                Q_xi = diag(eHxi)*Q;
+                M = diag(U'*D*eHxi);
+                N = diag(eHxi)*D*U*diag(beta);
+                A = [ H - H*diag(dxj)*H,  -H*Q_xi, -H*N;...
+                     -(H*Q_xi)'       , zeros(n),   -M;...
+                     -(H*N)'          ,      -M', invDltSq/lambda];
+                A = 0.5*(A+A');
+                ddr = A\[H*dxidr; zeros(n); invDltSq/lambda];
+                dxidr = ddr(1:m,:);
+                drdr = ddr((end-n+1):end,:);
+            end
         end
     end
     function value = l2(dr)
@@ -54,6 +56,8 @@ function h = iterative_new(h)
     invDltSq = inv(DltSq);
     sqrtinvDltSq = sqrtm(invDltSq);
     delta = h.rule.delta;
+    lambda = h.rule.lambda;
+    isfndderiv = h.method.fndderiv;
     snsfnc = sensefnc(h);
     %
     switch h.rule.name
@@ -73,10 +77,11 @@ function h = iterative_new(h)
     %
     tic;
     options = optimset('TolX',1e-9,'Display','notify');
-    if isempty(h.rule.lambda)
-        h.rule.lambda = fzero(@(l)events(fun(l)),[1e-1 1e5],options);
+    if isempty(lambda)
+        lambda = fzero(@(l)events(fun(l)),[1e-1 1e5],options);
     end
-    [dr,xi,dxidr] = fun(h.rule.lambda);
+    [dr,xi,dxidr] = fun(lambda);
+    h.rule.lambda = lambda;
     h.result.xi = xi;
     h.result.dxi = dxidr;
     h.result.r = h.method.r0 + dr;

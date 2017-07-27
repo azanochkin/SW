@@ -1,7 +1,6 @@
 function h = cauchy_new(h)
     function dXi = odefun(~,Xi)
         xi = Xi(1:m);
-        dxidr = reshape(Xi(m+1:end),[m,n])/denormdxidr;
         %
         eHxi = exp(H*xi);
         tld = U'*D*eHxi;
@@ -9,16 +8,19 @@ function h = cauchy_new(h)
         Q_xi = diag(eHxi)*(Q0 + D*U*diag(dr));
         %
         b = (invDltSq*dr)./tld;
-        dxi = Q_xi*b;
+        dXi = Q_xi*b;
         %
-        iTld = diag(1./tld);
-        N = diag(eHxi)*D*U*diag(b);
-        %
-        A = diag(dxi) - N*iTld*Q_xi' - Q_xi*iTld*N' -...
-            Q_xi * iTld * invDltSq * iTld * Q_xi';
-        A = 0.5*(A+A');
-        ddxidr = A*H*dxidr - Q_xi*iTld*invDltSq;
-        dXi = [dxi ; ddxidr(:)*denormdxidr];
+        if isfndderiv
+            dxidr = reshape(Xi(m+1:end),[m,n])/denormdxidr;
+            iTld = diag(1./tld);
+            N = diag(eHxi)*D*U*diag(b);
+            %
+            A = diag(dXi) - N*iTld*Q_xi' - Q_xi*iTld*N' -...
+                Q_xi * iTld * invDltSq * iTld * Q_xi';
+            A = 0.5*(A+A');
+            ddxidr = A*H*dxidr - Q_xi*iTld*invDltSq;
+            dXi = [dXi ; ddxidr(:)*denormdxidr];
+        end
     end
     function [value,isterminal,direction] = l2(~,Xi)
         xi = Xi(1:m);
@@ -57,11 +59,11 @@ function h = cauchy_new(h)
     %
     [m,n,p,U,D,Q0,q0,H] = getInitData(h);
     denormdxidr = 1e-3;
-    Xi = zeros(m+m*n,1);
     DltSq = h.method.DeltaSq;
     invDltSq = inv(DltSq);
     sqrtinvDltSq = sqrtm(invDltSq);
     delta = h.rule.delta;
+    isfndderiv = h.method.fndderiv;
     snsfnc = sensefnc(h);
     %
     switch h.rule.name
@@ -77,20 +79,27 @@ function h = cauchy_new(h)
             error('undefined rule');
     end
     tic;
+    Xi = zeros(m,1);
+    if isfndderiv
+        Xi = [Xi; zeros(m*n,1)];
+    end
     options = odeset('BDF','on','abstol',1e-6,'reltol',1e-4);
     if isempty(h.rule.lambda)
         options = odeset(options,'Events',events);
-        [t,Xi,~,~,ie] = ode15s(@odefun,[0 2e1],Xi,options);
+        [h.rule.lambda,Xi,~,~,ie] = ode15s(@odefun,[0 2e1],Xi,options);
         if isempty(ie)
             warning(['Cauchy_new : condition is not fulfilled. ',...
                      'Change reg. parametr interval'])
         end
     else
-        [t,Xi] = ode15s(@odefun,[0 h.rule.lambda],Xi,options);
+        [~,Xi] = ode15s(@odefun,[0 h.rule.lambda],Xi,options);
     end
-    h.rule.lambda = t;
     xi = Xi(end,1:m)';
-    dxidr = reshape(Xi(end,(m+1):end),[m,n])/denormdxidr;
+    if isfndderiv
+        dxidr = reshape(Xi(end,(m+1):end),[m,n])/denormdxidr;
+    else
+        dxidr = zeros(m,n);
+    end
     %
     h.result.xi = xi;
     h.result.dxi = dxidr;
