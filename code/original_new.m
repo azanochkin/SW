@@ -4,6 +4,7 @@ function h = original_new(h)
     nsubiter = h.method.nsubiter;
     %%
     xi = zeros(m,1);
+    dxidr = zeros(m,n);
     for j = 1:nsubiter
         Q0_xi = diag(exp(H*xi))*Q0;
         beta = (Q0_xi'*H*Q0_xi)\(p - Q0_xi'*(1 - H*xi));
@@ -19,8 +20,6 @@ function h = original_new(h)
         A = 0.5*(A+A');
         ddr = A\[H*N; M];
         dxidr = ddr(1:m,:);
-    else
-        dxidr = zeros(m,n);
     end
     %
     h.result.r = h.method.r0;

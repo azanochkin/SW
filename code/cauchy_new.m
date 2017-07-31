@@ -64,7 +64,6 @@ function h = cauchy_new(h)
     sqrtinvDltSq = sqrtm(invDltSq);
     delta = h.rule.delta;
     isfndderiv = h.method.fndderiv;
-    snsfnc = sensefnc(h);
     %
     switch h.rule.name
         case 'l2'

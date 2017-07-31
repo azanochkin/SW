@@ -58,7 +58,6 @@ function h = iterative_new(h)
     delta = h.rule.delta;
     lambda = h.rule.lambda;
     isfndderiv = h.method.fndderiv;
-    snsfnc = sensefnc(h);
     %
     switch h.rule.name
         case 'l2'

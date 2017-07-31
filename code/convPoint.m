@@ -20,7 +20,7 @@ function h = convPoint( h, method )
         b = h.method.alpha;
         Fb = F(h);
         isnconv = abs(Fb) > tautol; %abs(exp(Fb) - 1) > tautol
-        fprintf('conv iter %2i: alpha = %7.5f\n',itcnt,h.method.alpha);
+%         fprintf('conv iter %2i: alpha = %7.5f\n',itcnt,h.method.alpha);
         if isnconv
             h.method.alpha = b - (b - a) * Fb/(Fb - Fa);
             a = b;

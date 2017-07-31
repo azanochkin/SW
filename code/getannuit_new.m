@@ -14,9 +14,5 @@ dxi = h.result.dxi;
 d = exp(-w*v + H*xi);
 h.result.annuity = d'*pr;
 h.result.grad = (H*dxi)'*(d.*pr);
-%
-snsfnc = sensefnc(h);
-h.result.sense = snsfnc(h.result.grad,h.method.DeltaSq,...
-    h.result.annuity);
 end
 

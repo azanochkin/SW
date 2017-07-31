@@ -100,4 +100,5 @@ function h = SW(data,date,varargin)
         h = convPoint( h, method );
     end
     h = getannuit(h);
+    h = sensefnc(h);
 end
