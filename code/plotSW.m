@@ -21,8 +21,6 @@ function h = plotSW(arrh,varargin)
     end
     N_grid = 300;
     switch numel(T)
-        case 0
-            v = arrh(1).data.u;
         case 1
             v = linspace(0,T,N_grid)';
         case 2
@@ -31,29 +29,28 @@ function h = plotSW(arrh,varargin)
             v = T(:);
     end
     [ y, f] = getrates( arrh,v );
-    %[ u, spot, fy] = getrates( arrh, []);
-    %[ u, spot, fy] = getrates( arrh, 1:2:T);
     %
     nextplot = get(gca,'NextPlot');
-    %
     h(:,1) = plot(v,100*y,'linestyle','-.','linewidth',0.5,colorarg{:},...
         marker{:},'MarkerIndices',1:MarkerIndices:length(v));
     hold on;
     h(:,2) = plot(v,100*f,'linestyle','-','linewidth',1,colorarg{:},...
         marker{:},'MarkerIndices',1:MarkerIndices:length(v));
-    %h(3) = plot(u,100*spot,'linestyle','none',marker{:},colorarg{:});
-    %h(4) = plot(u,100*fy,'linestyle','none',marker{:},colorarg{:});
-    if numel(arrh) == 1
-        %name = arrh.data.date;
-        if strcmp(arrh(1).method.name,'original')
-            name = 'original';
+    for i = 1:numel(arrh)
+        h(i,2).Color = h(i,1).Color;
+        func = arrh(i).method.functional(1);
+        name = arrh(i).method.name(1:4);
+        tnr = arrh(i).data.tenor(end);
+        mask = arrh(i).data.mask;
+        if any(~mask(1:end-1) & mask(2:end))
+            ful = '?';
         else
-            name = 'regularized';
+            ful = ':';
         end
-        %name = ['regul,; ', arrh(1).method.name,'; ',arrh(1).rule.name];
-        set(h(1),'DisplayName',['spot curve ',name]);
-        %set(h(2),'DisplayName',['traded maturities ', name]);
-        set(h(2),'DisplayName',['forward rate ', name]);
+        fulname = sprintf('spot curve %s_%c 1%c%i',name,func,ful,tnr);
+        set(h(i,1),'DisplayName',fulname);
+        fulname = sprintf('forward rate %s_%c 1%c%i',name,func,ful,tnr);
+        set(h(i,2),'DisplayName',fulname);
     end
     %
 %     yl = ylim();

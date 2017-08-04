@@ -2,11 +2,13 @@
 ann_val=nan(size(results));
 dmr = nan(size(results));
 dr = nan(length(results),length(results{1,2}.result.r));
+sns = nan(size(results));
 for i=1:size(results,1)
     dr(i,results{i,2}.data.tenor) = results{i,2}.result.r - results{i,2}.data.r_last;
     for j=1:size(results,2)
         ann_val(i,j)=results{i,j}.result.annuity;
         dmr(i,j) = max(abs(results{i,j}.result.r - results{i,j}.data.r_last));
+        sns(i,j) = results{i,j}.result.sense;
     end
 end
 colors=[0 0 0;...
@@ -14,7 +16,7 @@ colors=[0 0 0;...
         1 .5 0;...
         0 .5 0;...
         0 1 1];
-lgd={'SW\_original','SW+Tikhonov\_linf','SW\_modified'};
+lgd={'SW\_original','SW\_reg','SW\_modified','SW\_reg\_1:20','SW\_reg\_1:30'};
 
 figure
 

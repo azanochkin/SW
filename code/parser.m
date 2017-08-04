@@ -37,6 +37,8 @@ function h = parser( varargin )
                 h.rule.name = varargin{i+1};
             case 'norm'
                 h.method.normname = varargin{i+1};
+            case 'mask'
+                h.data.mask = varargin{i+1};
             case 'fndderiv'
                 h.method.fndderiv = varargin{i+1};
             case 'profile'

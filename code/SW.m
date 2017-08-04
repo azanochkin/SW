@@ -3,8 +3,11 @@ function h = SW(data,date,varargin)
     day=find(ismember(data.Date,date));
 
     % To drop NaN data
-    nanflag=any([data.PX_LAST(day,:);data.PX_BID(day,:);data.PX_ASK(day,:);data.PX_MID(day,:)]);
-    mask = data.liquid_mask&nanflag';
+    if isempty(h.data.mask)
+        h.data.mask = data.liquid_mask;
+    end
+    nanflag=any([data.PX_LAST(day,:);data.PX_BID(day,:);data.PX_ASK(day,:);data.PX_MID(day,:)])';
+    mask = h.data.mask & nanflag;
     
     h.data.day_number = day;
     h.data.tenor = data.tenor(mask);

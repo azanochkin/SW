@@ -2,36 +2,38 @@
 load ./data/data_update_may2015.mat
 %% Different methods results
 alpha = 0.12;
-T = 30;
+T = 60;
 UFR = 0.0365;
 prof = data.profile;
-isfixalpha = false;
-fndderiv = false;
-opt1 = {'functional','original','nsubiter',5,...
+isfixalpha = true;
+fndderiv = true;
+opt1 = {'functional','original','nsubiter',5,'norm','simple',...
     'UFR',UFR,'fndderiv',fndderiv,...
     'profile',prof,'fixalpha',isfixalpha};
-opt2 = {'method','cauchy','lambda',5e-4,...
+opt2 = {'method','cauchy','lambda',10e-4,...
 ...%opt2 = {'method','Tikhonov','lambda',5e2,...
     'functional','new','nsubiter',5,'norm','simple',...
     'UFR',UFR,'fndderiv',fndderiv,...
     'profile',prof,'fixalpha',isfixalpha};
-opt3 = {'functional','new','nsubiter',5,...
+opt3 = {'functional','new','nsubiter',5,'norm','simple',...
     'UFR',UFR,'fndderiv',fndderiv,...
     'profile',prof,'fixalpha',isfixalpha};
-results=cell(length(data.Date),3);
+opt4 = [opt2 ,'mask',data.tenor<=20];
+opt5 = [opt2 ,'mask',data.tenor<=30];
+results=cell(length(data.Date),5);
 for i=1:length(data.Date)
     dt=data.Date{i};
     results{i,1} = SW(data,dt,opt1{:},'alpha',alpha);
     results{i,2} = SW(data,dt,opt2{:},'alpha',results{i,1}.method.alpha);
     results{i,3} = SW(data,dt,opt3{:},'alpha',results{i,2}.method.alpha);
+    results{i,4} = SW(data,dt,opt4{:},'alpha',results{i,3}.method.alpha);
+    results{i,5} = SW(data,dt,opt5{:},'alpha',results{i,4}.method.alpha);
     fprintf('Step %d of %d.\n',i,length(data.Date));
     if true
         clf
+        set(gcf,'Position',[50 50 1800 900])
         subplot(1,2,1);
-        plotSW(results{i,3},'time',T,'color',[0 0 0]);
-        ylim('manual');
-        hold on;
-        plotSW(results{i,2},'time',T,'color',[1 0.4 0]);
+        plotSW([results{i,2:5}],'time',T);
         legend('location','southeast')
         title(results{i,3}.data.date)
         plotrates(results{i,2});
