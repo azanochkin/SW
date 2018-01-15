@@ -28,7 +28,7 @@ function h = iterative(h)
     DltSq = h.method.DeltaSq;
     invDltSq = inv(DltSq);
     delta = h.rule.delta;
-    snsfnc = sensefnc(h); 
+    %snsfnc = sensefnc(h); 
     %
     switch h.rule.name
         case 'l2'

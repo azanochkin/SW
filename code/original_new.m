@@ -7,7 +7,9 @@ function h = original_new(h)
     dxidr = zeros(m,n);
     for j = 1:nsubiter
         Q0_xi = diag(exp(H*xi))*Q0;
-        beta = (Q0_xi'*H*Q0_xi)\(p - Q0_xi'*(1 - H*xi));
+        A = (Q0_xi'*H*Q0_xi);
+        A = 0.5*(A+A');
+        beta = A\(p - Q0_xi'*(1 - H*xi));
         xi = Q0_xi*beta;
     end
     if h.method.fndderiv
@@ -21,7 +23,7 @@ function h = original_new(h)
         ddr = A\[H*N; M];
         dxidr = ddr(1:m,:);
     end
-    %
+    %%
     h.result.r = h.method.r0;
     h.result.xi = xi;
     h.result.dxi = dxidr;

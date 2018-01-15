@@ -1,35 +1,38 @@
 function h = iterative_new(h)
     function [dr,xi,dxidr] = fun(lambda)
+        Sigma = lambda*DltSq;
         xi = zeros(m,1);
-        dxj = zeros(m,1);
         dxidr = zeros(m,n);
-        Q = Q0;
-        %
         for i = 1:nIter
+            dxi = zeros(m,1);
+            dr = zeros(n,1);
             for j = 1:nsubiter
-                eHxj = exp(H*(xi+dxj));
-                Q0_xj = diag(eHxj)*Q0;
-                Q_xj = diag(eHxj)*Q;
-                tld = diag(U'*D*eHxj);
-                beta = (Q0_xj'*H*Q_xj+lambda*tld*DltSq*tld)\...
-                    (p - Q0_xj'*(1-H*dxj));
-                dr = lambda * DltSq * tld * beta;
-                dxj = Q_xj*beta;
-                Q = Q0 + D*U*diag(dr);          
-            end
-            xi = xi + dxj;
-            if isfndderiv
-                eHxi = exp(H*xi);
-                Q_xi = diag(eHxi)*Q;
-                M = diag(U'*D*eHxi);
-                N = diag(eHxi)*D*U*diag(beta);
-                A = [ H - H*diag(dxj)*H,  -H*Q_xi, -H*N;...
-                     -(H*Q_xi)'       , zeros(n),   -M;...
-                     -(H*N)'          ,      -M', invDltSq/lambda];
+                eHxi = exp(H*(xi+dxi));
+                Q = diag(eHxi)*(Q0 + D*U*diag(dr));
+                P = diag(U'*D*eHxi);
+                A = (Q'*H*Q+P*Sigma*P);
                 A = 0.5*(A+A');
-                ddr = A\[H*dxidr; zeros(n); invDltSq/lambda];
+                beta = A\(p - Q'*(1 - H*dxi) + P' * dr);
+%                 fprintf('%2i(%i), rcond = %4.2e : dr = %4.2f, dxj = %4.2f\n',...
+%                     j,ishermitian(A),rcond(Q'*H*Q),...
+%                     1e4*norm(dr - Sigma*P*beta), norm(dxi - Q*beta));
+                dr = Sigma * P * beta;
+                dxi = Q*beta;
+            end
+            xi = xi + dxi;
+            %
+%             A = 0.5*(inv(H) - diag(dxi) + Q*inv(P*Sigma*P)*Q') + Q*inv(P)*diag(beta)*U'*D*eHxi;
+%             R = chol(A+A');
+            %
+            if isfndderiv
+                N = diag(eHxi)*D*U*diag(beta);
+                A = [ H - H*diag(dxi)*H,     -H*Q  , -H*N*Sigma;...
+                     -(H*Q)'           , zeros(n)  ,   -P*Sigma;...
+                     -(H*N*Sigma)'     ,-(P*Sigma)',      Sigma];
+                A = 0.5*(A+A');
+                ddr = A\[H*dxidr; zeros(n); eye(n)];
                 dxidr = ddr(1:m,:);
-                drdr = ddr((end-n+1):end,:);
+                drdr = Sigma*ddr((end-n+1):end,:);
             end
         end
     end
