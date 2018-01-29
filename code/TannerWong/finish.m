@@ -11,17 +11,17 @@ kernel = 'SW';
 mask = true(26,1);
 mask(21:end) = false;
 %
-for it = 1:Ndt
+for it = Ndt:-1:1
     arrh(it) = SW(data,dt(it),'functional','new','mask',mask,...
         'norm','simple','alpha',alpha,'UFR',UFR,'kernel',kernel);
     if any(xor(mask,arrh(it).data.mask))
-        warning(sprintf('in %i date mask not full',it))
+        warning('in %i date mask not full',it)
     end
 end
 %
 pTol = 1e-8;
 M = 1e2;
-N = 1e2;
+N = 2e2;
 m = 20;
 n = 20;
 %% Compute
@@ -31,20 +31,23 @@ alpha_r = coef * 0.5 * Ndt;
 beta_x = coef * 0.5 * m * Ndt * ones(1,N);
 beta_r = coef * 0.5 * Ndt * ones(n,N);
 %%
-for l = 1:2000
+for l = 1:20
     tau_x = gamrnd(alpha_x,1./beta_x);
     tau_r = gamrnd(alpha_r,1./beta_r);
     %
-    norm_x = zeros(M,N);
-    norm_r = zeros(n,M,N);
-    norm_y = zeros(M,N);
+    norm_x = zeros(N,M);
+    norm_r = zeros(N,n,M);
+    norm_y = zeros(N,M);
     %
-    for it = 1:Ndt
-        [m,n,p,U,D,Q0,~,H] = getInitData(arrh(it));
-        S = 1e-1*arrh(it).method.DeltaSq;
+    parfor it = 1:Ndt
+        loc_norm_x = zeros(N,M);
+        loc_norm_r = zeros(N,n,M);
+        loc_norm_y = zeros(N,M);
+        [~,~,p,U,D,Q0,~,H] = getInitData(arrh(it)); %!!!!!
+        S = 1e-1*arrh(it).method.DeltaSq; %!!
         for i = 1:N
             lS = tau_x(i)*S./tau_r(:,i);
-            dx = zeros(m,1);
+            dx = zeros(m,1);%111
             dr = zeros(n,1);
             flag = true;
             while flag
@@ -58,8 +61,7 @@ for l = 1:2000
                     dx = H * Q * beta;
                 end
             end
-            % A = 0.5*(inv(H)-diag(dx)+Q*inv(P*S*P)*Q') + Q*inv(P)*diag(beta)*U'*D*ex;
-            % A = inv(A+A');
+            
             A = H - H*Q*((Q'*H*Q+P'*lS*P)\(Q'*H));
             A = 0.5 * (A + A') / tau_x(i);
             L = chol(A,'lower');
@@ -68,26 +70,25 @@ for l = 1:2000
             X = dx + L*Y;
             expX = exp(X);
             R = (p - Q0'*expX)./((U'*D)*expX);
-            norm_x(:,i) = norm_x(:,i) + dot(X,H\X)';
-            norm_r(:,:,i) = norm_r(:,:,i) + R.*(S\R);
-            norm_y(:,i) = norm_y(:,i) + dot(Y,Y)';
-
-    %         DX(:,i) = dx;%%%!!! prob != 1
-    %         DR(:,i) = mean(R,2);%%!!! plob != 1
+            loc_norm_x(i,:) = sum(X.*(H\X));%dot(X,H\X);
+            loc_norm_r(i,:,:) = R.*(S\R);
+            loc_norm_y(i,:) = sum(Y.*Y);%dot(Y,Y);
         end
+        norm_x = norm_x + loc_norm_x;
+        norm_r = norm_r + loc_norm_r;
+        norm_y = norm_y + loc_norm_y;
     end
-    nrt = squeeze(sum(norm_r.* repmat(permute(tau_r,[1 3 2]),1,M)));
-    pr = norm_x.* tau_x + nrt - norm_y;
+    pr = tau_x' .* norm_x + squeeze(sum(tau_r' .* norm_r,2)) - norm_y;
     pr = exp(-0.5*(pr - mean(pr)));
-%     pr = M * pr./sum(pr);
-    cumpr = cumsum(pr);
+    cumpr = cumsum(pr,2);
+    
     ind = randi(N,[1,N]);
     rnd = rand([N,1]);
     for k = 1:N
         i = ind(k);
-        j = find(cumpr(:,i) >= rnd(k)*cumpr(end,i),1,'first');
-        beta_x(k) = 0 + 0.5 * norm_x(j,i);
-        beta_r(:,k) = 0 + 0.5 * norm_r(:,j,i);
+        j = find(cumpr(i,:) >= rnd(k)*cumpr(i,end),1,'first');
+        beta_x(k) = 0 + 0.5 * norm_x(i,j);
+        beta_r(:,k) = 0 + 0.5 * norm_r(i,:,j);
     end
     alpha_x = 0.5 * m * Ndt;
     alpha_r = 0.5 * Ndt;
