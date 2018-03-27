@@ -12,13 +12,13 @@ function h = explicit(h)
     function flag = analR1()
         flag = nIter*(dxi'*H*dxi)>delta^2*mu/(2*exp(1));
     end
-    function flag = Sense()
-        grad = dxidr'*ann_vec;
-        flag = snsfnc(grad,DltSq,ann_add + xi'*ann_vec)< delta;
-        error('not finished implementation');
-    end
+%     function flag = Sense()
+%         grad = dxidr'*ann_vec;
+%         flag = snsfnc(grad,DltSq,ann_add + xi'*ann_vec)< delta;
+%         error('not finished implementation');
+%     end
     %
-    [ m,n,p,U,D,Q0,q0,H,ann_vec,ann_add] = getInitData( h);
+    [ m,n,p,U,D,Q0,q0,H] = getInitData( h);
     nsubiter = h.method.nsubiter;
     DltSq = h.method.DeltaSq;
     invDltSq = inv(DltSq);
@@ -42,6 +42,7 @@ function h = explicit(h)
     %
     xi = zeros(m,1);
     dxidr = zeros(m,n);
+    dxidp = zeros(m,n);
     Q = Q0;
     invtld = diag(1./(U'*D*(1+H*Q0*(Q0'*H*Q0\(p-q0)))));
     mu = 9.9e-1/norm(invtld*invDltSq*invtld*Q'*H*Q);
@@ -62,14 +63,12 @@ function h = explicit(h)
         flag = events();
         nIter = nIter+1;
     end
+    %
     h.method.niter = nIter-1;
     h.result.xi = xi;
-    h.result.dxi = dxidr;
+    h.result.dxidr = dxidr;
+    h.result.dxidp = dxidp;
     h.result.r = h.method.r0 + dr;
-    h.result.grad = dxidr'*ann_vec;
-    h.result.annuity = ann_add + xi'*ann_vec;
-    h.result.sense = snsfnc(h.result.grad,DltSq,h.result.annuity);
-    h.method.name = 'explicit';
     h.result.time = toc;
 end
 

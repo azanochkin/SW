@@ -1,5 +1,5 @@
 function h = bounded(h)
-    [ m,n,p,U,D,Q0,q0,H,ann_vec,ann_add ] = getInitData(h);
+    [ m,n,p,U,D,Q0,q0,H] = getInitData(h);
     nsubiter = h.method.nsubiter;
     DltSq = h.method.DeltaSq;
     delta = h.rule.delta;
@@ -19,10 +19,10 @@ function h = bounded(h)
         Q = Q0 + D*U*diag(dr);
         tld = diag(U'*D*(1+H*xi));
     end
-    h.result.xi = xi;
     h.result.r = h.method.r0 + dr;
-    h.result.annuity = ann_add + xi'*ann_vec;
-    h.method.name = 'bounded';
+    h.result.xi = xi;
+    h.result.dxidr = zeros(m,n);
+    h.result.dxidp = zeros(m,n);
     h.result.time = toc;
 end
 

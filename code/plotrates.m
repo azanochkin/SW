@@ -3,7 +3,8 @@ function plotrates(h)
     r_min = h.data.r_bid;
     r_max = h.data.r_ask;
     r_mid = h.data.r_mid;
-    r_last = h.data.r_mid;
+%     r_last = h.data.r_mid;
+    r_last = h.data.r_last;
     r0 = h.method.r0;
     r = h.result.r(:);
     subplot(2,2,2)
@@ -25,14 +26,12 @@ function plotrates(h)
     %title(['max resudual = ',num2str(1e4*max(dr)),' bps; relev max residual = ',num2str(max(dr./vec))]);
     title(['max residual = ',num2str(1e4*max(abs(dr))),' bps']);
     subplot(2,2,4)
-    title(['Quotes on ',h.data.date])
     plot(tenor,1e2*r_min,'b*',tenor,1e2*r_max,'r*',...
          tenor,1e2*r_mid,'g+',tenor,1e2*r_last,'co',...
          tenor,1e2*r,'k')
+    title(sprintf('Quotes on %s',h.data.date))
     grid on
     legend('bid','ask','mid','last','regularized','location','southeast')
     xlabel('Term, years')
     ylabel('Fixed leg rate, %')
-    legend('bid','ask','mid','regulirized')
-	legend('location','southeast')
 end

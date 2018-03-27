@@ -40,17 +40,17 @@ function h = cauchy(h)
         isterminal = s>1e-4;
         direction = 0;
     end
-    function [value,isterminal,direction] = Sense(~,Xi)
-        xi = Xi(1:m);
-        dxidr = reshape(Xi(m+1:end),[m,n])/denormdxidr;
-        grad = dxidr'*ann_vec;
-        sense = snsfnc(grad,DltSq,ann_add + xi'*ann_vec);
-        value = sense - delta;
-        isterminal = 1;
-        direction = 0;
-    end
+%     function [value,isterminal,direction] = Sense(~,Xi)
+%         xi = Xi(1:m);
+%         dxidr = reshape(Xi(m+1:end),[m,n])/denormdxidr;
+%         grad = dxidr'*ann_vec;
+%         sense = snsfnc(grad,DltSq,ann_add + xi'*ann_vec);
+%         value = sense - delta;
+%         isterminal = 1;
+%         direction = 0;
+%     end
     %
-    [m,n,p,U,D,Q0,q0,H,ann_vec,ann_add] = getInitData(h);
+    [m,n,p,U,D,Q0,q0,H] = getInitData(h);
     denormdxidr = 1e-4;
     Xi = zeros(m+m*n,1);
     DltSq = h.method.DeltaSq;
@@ -78,12 +78,9 @@ function h = cauchy(h)
     dxidr = reshape(Xi(end,(m+1):end),[m,n])/denormdxidr;
     %
     h.result.xi = xi;
-    h.result.dxi = dxidr;
+    h.result.dxidr = dxidr;
+    h.result.dxidp = zeros(m,n);
     h.result.r = h.method.r0 + (p-q0 - Q0'*H*xi)./(U'*D*(1+H*xi));
-    h.result.grad = dxidr'*ann_vec;
-    h.result.annuity = ann_add + xi'*ann_vec;
-    h.result.sense = snsfnc(h.result.grad,DltSq,h.result.annuity);
-    h.method.name = 'cauchy';
     h.result.time = toc;
 end
 

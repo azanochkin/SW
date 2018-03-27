@@ -11,10 +11,10 @@ function h = iterative(h)
         tn = 2*nIter;
         flag = (tmp'*Q'*H*Q*tmp)/lambda>delta^2*(1/tn)*(1-1/tn)^(tn-1);
     end
-    function flag = Sense()
-        grad = dxidr'*ann_vec;
-        flag = snsfnc(grad,DltSq,ann_add + xi'*ann_vec)< delta;
-    end
+%     function flag = Sense()
+%         grad = dxidr'*ann_vec;
+%         flag = snsfnc(grad,DltSq,ann_add + xi'*ann_vec)< delta;
+%     end
 %     function flag = Lepskii()
 %         tau = 1+1/nIter;
 %         gamma_p = sqrt(0.5/nIter)*(1-0.5/nIter)^(nIter-0.5);
@@ -22,7 +22,7 @@ function h = iterative(h)
 %         flag = dxi'*H*dxi < c^2*(((1-q)^2)/q)*delta^2/lambda;
 %     end
     %
-    [ m,n,p,U,D,Q0,q0,H,ann_vec,ann_add ] = getInitData(h);
+    [ m,n,p,U,D,Q0,q0,H] = getInitData(h);
     nsubiter = h.method.nsubiter;
     nIter = h.method.niter;
     DltSq = h.method.DeltaSq;
@@ -53,6 +53,7 @@ function h = iterative(h)
     while flag
         xi = zeros(m,1);
         dxidr = zeros(m,n);
+        dxidp = zeros(m,n);
         Q = Q0;
         tld = diag(U'*D*(1+H*Q0*(Q0'*H*Q0\(p-q0))));
         %
@@ -75,13 +76,11 @@ function h = iterative(h)
         lambda = lambda*q;
         %dr_prev = dr;
     end
+    %
     h.result.xi = xi;
-    h.result.dxi = dxidr;
+    h.result.dxidr = dxidr;
+    h.result.dxidr = dxidp;
     h.result.r = h.method.r0 + dr;
-    h.result.grad = dxidr'*ann_vec;
-    h.result.annuity = ann_add + xi'*ann_vec;
-    h.result.sense = snsfnc(h.result.grad,DltSq,h.result.annuity);
-    %h.method.name = 'iterative';
     h.result.time = toc;
 end
 

@@ -1,7 +1,9 @@
 function h = SW(data,date,varargin)
     h = parser(varargin{:});
-    day=find(ismember(data.Date,date));
-
+    [ism,day] = ismember(date, data.Date);
+    if ~ism
+        error('Date %s is out of range',date)
+    end
     % To drop NaN data
     if isempty(h.data.mask)
         h.data.mask = data.liquid_mask;
@@ -9,10 +11,12 @@ function h = SW(data,date,varargin)
     nanflag=any([data.PX_LAST(day,:);data.PX_BID(day,:);data.PX_ASK(day,:);data.PX_MID(day,:)])';
     mask = h.data.mask & nanflag;
     
+    h.data.mask = mask;
     h.data.day_number = day;
     h.data.tenor = data.tenor(mask);
     h.data.u = 1:max(h.data.tenor);
-    h.data.date = data.Date{day};
+%     h.data.date = data.Date{day};
+    h.data.date = date;
     h.data.r_bid = 1e-2*(data.PX_BID(day,mask) - data.CRA(day))';
     h.data.r_ask = 1e-2*(data.PX_ASK(day,mask) - data.CRA(day))';
     h.data.r_mid = 1e-2*(data.PX_MID(day,mask) - data.CRA(day))';
@@ -38,6 +42,10 @@ function h = SW(data,date,varargin)
                 data.PX_BID((day-wind)-1:day-1,mask));
         case 'simple'
             normval = ones(size(h.data.r_ask))*2e-4;
+%             normval(ismember(h.data.tenor,[11 13 14 16:20])) = 4e-4;
+            normval(ismember(h.data.tenor,15:20)) = 4e-4;
+            normval(ismember(h.data.tenor,21:30)) = 8e-4;
+            normval(ismember(h.data.tenor,31:50)) = 16e-4;
         otherwise
             error('undefined')
     end
@@ -55,7 +63,6 @@ function h = SW(data,date,varargin)
     end
     switch h.method.functional
         case 'original'
-            getannuit = @(h)h;
             switch h.method.name
                 case 'original'
                     method = @original;
@@ -79,7 +86,6 @@ function h = SW(data,date,varargin)
             if h.method.nsubiter < 3
                 warning('Small number of subiterations');
             end
-            getannuit = @getannuit_new;
             switch h.method.name
                 case 'original'
                     method = @original_new;

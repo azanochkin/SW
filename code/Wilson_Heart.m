@@ -2,6 +2,9 @@ function H = Wilson_Heart( a, v, u, kernel )
     [U,V] = meshgrid(u,v);
     Min = min(U,V);
     Max = max(U,V);
+    if nargin < 4
+        kernel =  'SW';
+    end 
     switch kernel
         case 'SW'
             %Wilson

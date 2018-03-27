@@ -1,4 +1,4 @@
-function [ m,n,p,U,D,Q0,q0,H,ann_vec,ann_add] = getInitData(h)
+function [ m,n,p,U,D,Q0,q0,H] = getInitData(h)
     a = h.method.alpha;
     w = h.method.ufr;
     kernel = h.method.kernel;
@@ -22,10 +22,5 @@ function [ m,n,p,U,D,Q0,q0,H,ann_vec,ann_add] = getInitData(h)
     q0 = C0'*d;
 
     H = Wilson_Heart(a,u,u,kernel);
-    
-    v = h.data.u_ann;
-    pr = h.data.profile;
-    ann_vec = Wilson_Heart(a,u,v,kernel)*(exp(-w*v).*pr);
-    ann_add = exp(-w*v)'*pr;
 end
 

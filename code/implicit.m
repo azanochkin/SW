@@ -12,22 +12,21 @@ function h = implicit(h)
     function flag = analR1()
         flag = nIter*(dxi'*H*dxi)>delta^2/(2*lambda*exp(1));
     end
-    function flag = Sense()
-        grad = dxidr'*ann_vec;
-%
-% dxidr0 = -Q*((Q'*H*Q)\diag(U'*D*(1+H*xi)));
-% scale= snsfnc(dxidr0'*ann_vec,DltSq,1);
-% flag = snsfnc(grad,DltSq,scale)< delta;
-%
-        flag = snsfnc(grad,DltSq,ann_add + xi'*ann_vec)< delta;
-    end
+%     function flag = Sense()
+%         grad = dxidr'*ann_vec;
+% %
+% % dxidr0 = -Q*((Q'*H*Q)\diag(U'*D*(1+H*xi)));
+% % scale= snsfnc(dxidr0'*ann_vec,DltSq,1);
+% % flag = snsfnc(grad,DltSq,scale)< delta;
+% %
+%         flag = snsfnc(grad,DltSq,ann_add + xi'*ann_vec)< delta;
+%     end
     %
-    [ m,n,p,U,D,Q0,q0,H,ann_vec,ann_add] = getInitData( h);
+    [ m,n,p,U,D,Q0,q0,H] = getInitData( h);
     nsubiter = h.method.nsubiter;
     DltSq = h.method.DeltaSq;
     invDltSq = inv(DltSq);
     delta = h.rule.delta;
-    snsfnc = sensefnc(h); 
     %
     switch h.rule.name
         case 'l2'
@@ -51,6 +50,7 @@ function h = implicit(h)
     while flag
         xi = zeros(m,1);
         dxidr = zeros(m,n);
+        dxidp = zeros(m,n);
         Q = Q0;
         %tld = diag(U'*D*(1+H*xi));
         tld = diag(U'*D*(1+H*Q0*(Q0'*H*Q0\(p-q0))));
@@ -77,32 +77,13 @@ function h = implicit(h)
                 tic;
                 break
             end
-%             %
-%     res(nIter) = norm(sqrtm(DltSq)\dr);
-%     grad = dxidr'*ann_vec;
-%     sns(nIter) = snsfnc(grad,DltSq,ann_add + xi'*ann_vec);
-%     dxidr0 = -Q*inv(Q'*H*Q)*diag(U'*D*(1+H*xi));
-%     snc(nIter) = snsfnc(dxidr0'*ann_vec,DltSq,ann_add + xi'*ann_vec);
-            %
             nIter = nIter+1;
         end
     end
     h.method.niter = nIter-1;
     h.result.xi = xi;
-    h.result.dxi = dxidr;
+    h.result.dxidr = dxidr;
+    h.result.dxidp = dxidr;
     h.result.r = h.method.r0 + dr;
-    h.result.grad = dxidr'*ann_vec;
-    h.result.annuity = ann_add + xi'*ann_vec;
-    h.result.sense = snsfnc(h.result.grad,DltSq,h.result.annuity);
-    h.method.name = 'implicit';
     h.result.time = toc;
-%     %
-%     tmp = gcf;
-%     figure(10)
-%     loglog((1:(nIter-1)),[sns],'displayname','sns');
-%     hold on;
-%     loglog((1:(nIter-1)),[res],'displayname','resid','color','r');
-%     loglog((1:(nIter-1)),[snc],'displayname','snc','color','g');
-%     legend show
-%     figure(tmp);
 end

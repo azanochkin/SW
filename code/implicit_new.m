@@ -51,6 +51,7 @@ function h = implicit_new(h)
     tic;
     xi = zeros(m,1);
     dxidr = zeros(m,n);
+    dxidp = zeros(m,n);
     nIter = 0;
     flag = true;
     while flag
@@ -61,9 +62,7 @@ function h = implicit_new(h)
             eHxi = exp(H*(xi+dxi));
             Q = diag(eHxi)*(Q0 + D*U*diag(dr));
             P = diag(U'*D*eHxi);
-            A = (Q'*H*Q+P*Sigma*P);
-            A = 0.5*(A+A');
-            beta = A\(p - Q'*(1 - H*dxi) + P' * dr);
+            beta = (Q'*H*Q+P*Sigma*P)\(p - Q'*(1 - H*dxi) + P' * dr);
             dr = Sigma * P * beta;
             dxi = Q*beta;
         end
@@ -74,16 +73,20 @@ function h = implicit_new(h)
                 -(H*Q)'           , zeros(n)  ,   -P*Sigma;...
                 -(H*N*Sigma)'     ,-(P*Sigma)',      Sigma];
             A = 0.5*(A+A');
-            ddr = A\[H*dxidr; zeros(n); eye(n)];
-            dxidr = ddr(1:m,:);
-            drdr = Sigma*ddr((end-n+1):end,:);
+            ddr = A\[ H*dxidr, H*dxidp;...
+                     zeros(n), -eye(n);...
+                       eye(n), zeros(n)];
+            dxidr = ddr(1:m,1:n);
+            dxidp = ddr(1:m,n+1:end);
+%             drdr = Sigma*ddr((end-n+1):end,1:n);
         end
         flag = (nIter < nMaxIter) && events();
     end
     %
     h.method.niter = nIter;
     h.result.xi = xi;
-    h.result.dxi = dxidr;
+    h.result.dxidr = dxidr;
+    h.result.dxidp = dxidp;
     h.result.r = h.method.r0 + dr;
     h.result.time = toc;
 end

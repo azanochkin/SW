@@ -9,6 +9,9 @@ function h = convPoint( h, method )
     convpnt = h.method.convpnt;
     ufr = h.method.ufr;
     llp = max(h.data.u);
+    % save deriv pref
+    fndderiv = h.method.fndderiv;
+    h.method.fndderiv = false;
     %
     a = h.method.alpha;
     Fa = F(h);
@@ -21,12 +24,15 @@ function h = convPoint( h, method )
         Fb = F(h);
         isnconv = abs(Fb) > tautol; %abs(exp(Fb) - 1) > tautol
 %         fprintf('conv iter %2i: alpha = %7.5f\n',itcnt,h.method.alpha);
-        if isnconv
+%         if isnconv
             h.method.alpha = b - (b - a) * Fb/(Fb - Fa);
             a = b;
             Fa = Fb;
             itcnt = itcnt + 1;
-        end
+%         end
     end
+    %
+    h.method.fndderiv = fndderiv;
+    h = method(h);
 end
 

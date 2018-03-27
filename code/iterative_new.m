@@ -1,8 +1,9 @@
 function h = iterative_new(h)
-    function [dr,xi,dxidr] = fun(lambda)
+    function [dr,xi,dxidr,dxidp] = fun(lambda)
         Sigma = lambda*DltSq;
         xi = zeros(m,1);
         dxidr = zeros(m,n);
+        dxidp = zeros(m,n);
         for i = 1:nIter
             dxi = zeros(m,1);
             dr = zeros(n,1);
@@ -10,19 +11,11 @@ function h = iterative_new(h)
                 eHxi = exp(H*(xi+dxi));
                 Q = diag(eHxi)*(Q0 + D*U*diag(dr));
                 P = diag(U'*D*eHxi);
-                A = (Q'*H*Q+P*Sigma*P);
-                A = 0.5*(A+A');
-                beta = A\(p - Q'*(1 - H*dxi) + P' * dr);
-%                 fprintf('%2i(%i), rcond = %4.2e : dr = %4.2f, dxj = %4.2f\n',...
-%                     j,ishermitian(A),rcond(Q'*H*Q),...
-%                     1e4*norm(dr - Sigma*P*beta), norm(dxi - Q*beta));
+                beta = (Q'*H*Q+P'*Sigma*P)\(p - Q'*(1 - H*dxi) + P' * dr);
                 dr = Sigma * P * beta;
                 dxi = Q*beta;
             end
             xi = xi + dxi;
-            %
-%             A = 0.5*(inv(H) - diag(dxi) + Q*inv(P*Sigma*P)*Q') + Q*inv(P)*diag(beta)*U'*D*eHxi;
-%             R = chol(A+A');
             %
             if isfndderiv
                 N = diag(eHxi)*D*U*diag(beta);
@@ -30,18 +23,22 @@ function h = iterative_new(h)
                      -(H*Q)'           , zeros(n)  ,   -P*Sigma;...
                      -(H*N*Sigma)'     ,-(P*Sigma)',      Sigma];
                 A = 0.5*(A+A');
-                ddr = A\[H*dxidr; zeros(n); eye(n)];
-                dxidr = ddr(1:m,:);
-                drdr = Sigma*ddr((end-n+1):end,:);
+                ddr = A\[ H*dxidr, H*dxidp;...
+                         zeros(n), -eye(n);...
+                           eye(n), zeros(n)];
+                dxidr = ddr(1:m,1:n);
+                dxidp = ddr(1:m,n+1:end);
+%                 drdr = Sigma*ddr((end-n+1):end,:);
+%                 HH = inv(inv(H) - diag(xi)); HH = 0.5 * (HH + HH');
+%                 dxidp = (H\HH)*(Q/(Q'*HH*Q + Sigma));
             end
         end
     end
     function value = l2(dr)
-        value = sqrt(dr'*invDltSq*dr) - delta;
-        %flag = (dr'*invDltSq*dr_prev)>delta*sqrt(dr_prev'*invDltSq*dr_prev);
+        value = 0.5*log(dr'*invDltSq*dr) - log(delta);
     end
     function value = linf(dr)
-        value = max(abs(sqrtinvDltSq*dr)) - delta;
+        value = log(max(abs(sqrtinvDltSq*dr))) - log(delta);
     end
 %     function flag = R1()
 %         flag = false;
@@ -80,12 +77,15 @@ function h = iterative_new(h)
     tic;
     options = optimset('TolX',1e-9,'Display','notify');
     if isempty(lambda)
-        lambda = fzero(@(l)events(fun(l)),[1e-1 1e5],options);
+        lambda = exp(fzero(@(l)events(fun(exp(l))),log([1e-2 1e4]),options));
+%         lambda = fzero(@(l)events(fun(l)),[1e-3 1e5],options);
     end
-    [dr,xi,dxidr] = fun(lambda);
+    [dr,xi,dxidr,dxidp] = fun(lambda);
+    %
     h.rule.lambda = lambda;
     h.result.xi = xi;
-    h.result.dxi = dxidr;
+    h.result.dxidr = dxidr;
+    h.result.dxidp = dxidp;
     h.result.r = h.method.r0 + dr;
     h.result.time = toc;
     end

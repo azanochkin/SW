@@ -101,7 +101,8 @@ function h = cauchy_new(h)
     end
     %
     h.result.xi = xi;
-    h.result.dxi = dxidr;
+    h.result.dxidr = dxidr;
+    h.result.dxidp = zeros(m,n);
     %
     eHxi = exp(H*xi);
     tld = U'*D*eHxi;
