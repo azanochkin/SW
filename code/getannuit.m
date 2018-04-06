@@ -1,5 +1,5 @@
-function [ h ] = getannuit( h )
-%GETANNUIT_NEW Compute annuity price and delta's
+function [ annuity, grad ] = getannuit( h )
+%GETANNUIT Compute annuity price and delta's
 v = h.data.u_ann;
 pr = h.data.profile;
 u = h.data.u;
@@ -14,11 +14,11 @@ dxi = h.result.dxidr;
 switch h.method.functional
     case 'original'
         d = exp(-w*v);
-        h.result.annuity = (1 + H*xi)'*(d.*pr);
+        annuity = (1 + H*xi)'*(d.*pr);
     case 'new'
         d = exp(-w*v + H*xi);
-        h.result.annuity = d'*pr;
+        annuity = d'*pr;
 end
-h.result.grad = (H*dxi)'*(d.*pr);
+grad = (H*dxi)'*(d.*pr);
 end
 

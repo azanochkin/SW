@@ -79,7 +79,7 @@ function h = iterative(h)
     %
     h.result.xi = xi;
     h.result.dxidr = dxidr;
-    h.result.dxidr = dxidp;
+    h.result.dxidp = dxidp;
     h.result.r = h.method.r0 + dr;
     h.result.time = toc;
 end

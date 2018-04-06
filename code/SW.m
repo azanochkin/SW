@@ -8,7 +8,8 @@ function h = SW(data,date,varargin)
     if isempty(h.data.mask)
         h.data.mask = data.liquid_mask;
     end
-    nanflag=any([data.PX_LAST(day,:);data.PX_BID(day,:);data.PX_ASK(day,:);data.PX_MID(day,:)])';
+    %nanflag=any([data.PX_LAST(day,:);data.PX_BID(day,:);data.PX_ASK(day,:);data.PX_MID(day,:)])';
+    nanflag=~isnan(data.PX_LAST(day,:))';
     mask = h.data.mask & nanflag;
     
     h.data.mask = mask;
@@ -108,6 +109,6 @@ function h = SW(data,date,varargin)
     if ~h.method.fixalpha
         h = convPoint( h, method );
     end
-    h = getannuit(h);
-    h = sensefnc(h);
+    [h.result.annuity, h.result.grad] = getannuit(h);
+    h.result.sense = sensefnc(h);
 end

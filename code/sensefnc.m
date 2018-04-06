@@ -1,4 +1,4 @@
-function h = sensefnc(h)
+function sense = sensefnc(h)
     switch h.method.sensefncname
         case 'S1'
             f = @(grad,DltSq)sum(1e-4*abs(grad));
@@ -17,6 +17,7 @@ function h = sensefnc(h)
         otherwise
             error(['undefined value "',h.method.denormsense,'"']);
     end
-    h.result.sense = f(h.result.grad, h.method.DeltaSq, h.result.annuity);
+%     sense = f(h.result.grad, h.method.DeltaSq, h.result.annuity);
+    sense = f(h.result.grad, (4e-8)*eye(size(h.method.DeltaSq)), h.result.annuity);
 end
 

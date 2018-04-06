@@ -2,6 +2,7 @@ function h = plotSW(arrh,varargin)
     T = 60;
     colorarg = {};
     marker = {};
+    DispName = {};
     MarkerIndices = 1;
     i = 1;
     while nargin>i
@@ -14,12 +15,14 @@ function h = plotSW(arrh,varargin)
                 marker = varargin(i:(i+1));
             case 'MarkerIndices'
                 MarkerIndices = varargin{i+1};
+            case 'DisplayName'
+                DispName = varargin{i+1};
             otherwise
                 error('undefined parametr name')
         end
         i = i+2;
     end
-    N_grid = 300;
+    N_grid = 500;
     switch numel(T)
         case 1
             v = linspace(0,T,N_grid)';
@@ -29,6 +32,8 @@ function h = plotSW(arrh,varargin)
             v = T(:);
     end
     [ y, f] = getrates( arrh,v );
+    y(imag(y)~=0) = nan; 
+    f(imag(f)~=0) = nan;
     %
     nextplot = get(gca,'NextPlot');
     h(:,1) = plot(v,100*y,'linestyle','-.','linewidth',0.5,colorarg{:},...
@@ -42,14 +47,17 @@ function h = plotSW(arrh,varargin)
         name = arrh(i).method.name(1:4);
         tnr = arrh(i).data.tenor(end);
         mask = arrh(i).data.mask;
-        if any(~mask(1:end-1) & mask(2:end))
-            ful = '?';
-        else
-            ful = ':';
+        if isempty(DispName)
+            if any(~mask(1:end-1) & mask(2:end))
+                ful = '..';
+            else
+                ful = ':';
+            end
+            DispName = sprintf('%s_%c 1%s%i',name,func,ful,tnr);
         end
-        fulname = sprintf('spot curve %s_%c 1%c%i',name,func,ful,tnr);
+        fulname = ['spot curve ', DispName];
         set(h(i,1),'DisplayName',fulname);
-        fulname = sprintf('forward rate %s_%c 1%c%i',name,func,ful,tnr);
+        fulname = ['forward rate ', DispName];
         set(h(i,2),'DisplayName',fulname);
     end
     %
