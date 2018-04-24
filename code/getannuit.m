@@ -6,7 +6,8 @@ u = h.data.u;
 w = h.method.ufr;
 a = h.method.alpha;
 kernel = h.method.kernel;
-H = Wilson_Heart(a,v,u,kernel);
+ufrvar = h.method.ufrvar;
+H = Wilson_Heart(a,v,u,kernel,ufrvar);
 %
 xi = h.result.xi;
 dxi = h.result.dxidr;

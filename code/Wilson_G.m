@@ -1,10 +1,7 @@
-function G = Wilson_G( a,v,u,kernel )
+function G = Wilson_G( a,v,u,kernel,ufrvar )
     [U,V] = meshgrid(u,v);
-    if ~isnumeric(kernel)
-        G = zeros(size(U));
-    else
-        G = kernel*U;
-        kernel = 'SW';
+    if nargin < 4
+        kernel =  'SW';
     end
     switch kernel
         case 'SW'
@@ -16,6 +13,10 @@ function G = Wilson_G( a,v,u,kernel )
         otherwise
             error('unknow kernel type');
     end
+    if nargin < 5
+        ufrvar = 0;
+    end
+    G = ufrvar*U;
     ind = U>V;
     G(ind) = G(ind) + T1(ind); 
     G(~ind) = G(~ind) + T2(~ind);

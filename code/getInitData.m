@@ -2,6 +2,7 @@ function [ m,n,p,U,D,Q0,q0,H] = getInitData(h)
     a = h.method.alpha;
     w = h.method.ufr;
     kernel = h.method.kernel;
+    ufrvar = h.method.ufrvar;
     u = h.data.u(:);
     tenor = h.data.tenor(:);
     r0 = h.method.r0;
@@ -21,6 +22,6 @@ function [ m,n,p,U,D,Q0,q0,H] = getInitData(h)
     Q0 = D*C0;
     q0 = C0'*d;
 
-    H = Wilson_Heart(a,u,u,kernel);
+    H = Wilson_Heart(a,u,u,kernel,ufrvar);
 end
 

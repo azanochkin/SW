@@ -8,8 +8,9 @@ function [ y, f] = getrates( arrh, v)
         w = arrh(i).method.ufr;
         a = arrh(i).method.alpha;
         kernel = arrh(i).method.kernel;
-        H = Wilson_Heart(a,v,u,kernel);
-        G = Wilson_G(a,v,u,kernel);
+        ufrvar = arrh(i).method.ufrvar;
+        H = Wilson_Heart(a,v,u,kernel,ufrvar);
+        G = Wilson_G(a,v,u,kernel,ufrvar);
 
         switch arrh(i).method.functional
             case 'original'

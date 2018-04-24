@@ -1,35 +1,39 @@
 %% Load data
-load ./data/data_update_may2015.mat
+load ./data/data_update_mart2018.mat
 %% Different methods results
-alpha = 0.12;
+data.PX_LAST(494,18) = nan;
+alpha = 0.1;
+lambda = 5e6*alpha^3;
 T = 60;
-UFR = 0.0365;
-prof = data.profile;
-isfixalpha = true;
-fndderiv = true;
-opt1 = {'functional','original','nsubiter',5,'norm','simple',...
-    'UFR',UFR,'fndderiv',fndderiv,...
-    'profile',prof,'fixalpha',isfixalpha};
-opt2 = {'method','cauchy','lambda',10e-4,...
-...%opt2 = {'method','Tikhonov','lambda',5e2,...
-    'functional','new','nsubiter',5,'norm','simple',...
-    'UFR',UFR,'fndderiv',fndderiv,...
-    'profile',prof,'fixalpha',isfixalpha};
-opt3 = {'functional','new','nsubiter',5,'norm','simple',...
-    'UFR',UFR,'fndderiv',fndderiv,...
-    'profile',prof,'fixalpha',isfixalpha};
-opt4 = [opt2 ,'mask',data.tenor<=20];
-opt5 = [opt2 ,'mask',data.tenor<=30];
+commopt = {'UFR',log(1.0405),'fndderiv',true,...
+    'profile',data.profile,'alpha',alpha};
+opt1 = {'functional','original','fixalpha',false,'mask',data.tenor <= 20};
+opt2 = {'functional','original','fixalpha',false,'mask',data.liquid_mask};
+opt3 = {'functional','new','fixalpha',false,'mask',data.tenor<=30,...
+    'method','Tikhonov','lambda',lambda,'nsubiter',6,'norm','simple',...
+    'fixalpha',true};
+% opt4 = {'functional','new','fixalpha',false,'mask',data.tenor<=50,...
+%     'method','Tikhonov','lambda',lambda,'nsubiter',6,'norm','simple',...
+%     'fixalpha',true};
+opt4 = {'functional','new','fixalpha',false,'mask',data.tenor<=50,...
+    'method','Tikhonov','lambda',lambda,'nsubiter',6,'norm','simple',...
+    'fixalpha',true,'UFRvar',2e-3};
+opt5 = {'functional','new','fixalpha',false,'mask',data.tenor<=50,...
+    'method','Tikhonov','lambda',lambda,'nsubiter',6,'norm','simple',...
+    'fixalpha',true,'UFRvar',2e-2};
+%%
 results=cell(length(data.Date),5);
+fprintf('%6.2f%%\n',0 )
 for i=1:length(data.Date)
-    dt=data.Date{i};
-    results{i,1} = SW(data,dt,opt1{:},'alpha',alpha);
-    results{i,2} = SW(data,dt,opt2{:},'alpha',results{i,1}.method.alpha);
-    results{i,3} = SW(data,dt,opt3{:},'alpha',results{i,2}.method.alpha);
-    results{i,4} = SW(data,dt,opt4{:},'alpha',results{i,3}.method.alpha);
-    results{i,5} = SW(data,dt,opt5{:},'alpha',results{i,4}.method.alpha);
-    fprintf('Step %d of %d.\n',i,length(data.Date));
-    if true
+    dt=data.Date(i);
+    results{i,1} = SW(data,dt,opt1{:},commopt{:});
+    results{i,2} = SW(data,dt,opt2{:},commopt{:});
+    results{i,3} = SW(data,dt,opt3{:},commopt{:});
+    results{i,4} = SW(data,dt,opt4{:},commopt{:});
+    results{i,5} = SW(data,dt,opt5{:},commopt{:});
+    fprintf('\b\b\b\b\b\b\b\b%6.2f%%\n',1e2*i/length(data.Date))
+%     fprintf('Step %d of %d.\n',i,length(data.Date));
+    if false
         clf
         set(gcf,'Position',[50 50 1800 900])
         subplot(1,2,1);
@@ -37,7 +41,7 @@ for i=1:length(data.Date)
         legend('location','southeast')
         title(results{i,3}.data.date)
         plotrates(results{i,2});
-        pause(0.1)
+        pause(0.001)
     end
 end
 %% Sensitivity results 
