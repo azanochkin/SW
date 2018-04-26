@@ -1,0 +1,245 @@
+\documentclass[a4paper]{iccf2017}
+%%
+%%
+%% in the preamble you should not use any \pagestyle instruction
+%%
+%%
+%% you should include every command definition in the preamble
+%%
+%% if you should use any private package you should attach also
+%% the package file
+%%
+%% here follows the description of the commands that generate the title
+\title{A Robust Dynamic Generalization of Smith-Wilson}{A Robust Dynamic Generalization of the Smith-Wilson Term Structure Model}
+%%
+%% the first argument defines the abreviated version of the author name
+%% it is compulsory, even if is equal to the actual author name
+\author{A. Zanochkin}{Andrey Zanochkin}
+\address{National Research University Higher School of Economics, Moscow, Russia}
+\email{azanochkin@hse.ru}
+
+\author{V. Lapshin}{Victor Lapshin}
+\address{National Research University Higher School of Economics, Moscow, Russia}
+%%
+%% the following command is optional
+\email{vlapshin@hse.ru}
+%%
+%% this next argument is also optional
+%\url{http://www.somewhere.pt/$\sim$author1}
+\author{M. Kurbangaleev}{Marat Kurbangaleev}%this author does not thank anyone
+\address{National Research University Higher School of Economics, Moscow, Russia}
+\email{mkurbangaleev@hse.ru}
+% this author does not have an url address
+%%
+%%
+%% the instructions \author, \address, \email, \url should follow for
+%% each author
+
+\begin{document}
+
+%% this actually generates the title
+\maketitle
+
+\begin{abstract}
+We study the robustness of the Smith-Wilson term structure model with respect to small data perturbations. Using the real data, we demonstrate that the original model, as described by EIOPA produces very unstable estimates, especially in terms of forward rates. We propose a regularized version of the model taking into account observation errors. In order to estimate the regularization parameter for it, we consider an extension to the dynamic reformulation of the model and formulate a Kalman filter approach to it. From this Kalman filter approach, which is interesting by itself, we also derive the value for the snapshot regularization parameter. We also illustrate the new regularized method and compare it to the original Smith-Wilson method.
+\end{abstract}
+
+\section{Introduction}
+Estimating the term structure of interest rates is a classical problem of financial mathematics. In the US it is mostly considered solved, but in the Eurozone it presents more of a challenge due to non-homogeneity of the Euro market. The model of \cite{Smith_Wilson} is relatively new. It is also of major importance because it is recommended for use in Solvency II, and its technical implementation is described by EIOPA, the European insurance and pension fund regulator. This method, not very popular before, has been the subject of active research ever since.
+
+There are already many papers studying this method from various perspectives. \cite{Hibbert,kocken2012dangerous} show that in its original formulation the method is not robust to random data perturbations resulting in excess volatility of the estimated interest rate curve. In this paper we demonstrate that the problem of excess volatility is indeed a major concern for the method. Then we propose a modification to the method based on the Tikhonov regularization; we also show how this modification can be interpreted in terms of stochastic interest rate processes. Finally we illustrate our modifications using the real data.
+
+\section{A brief literature review}
+Interest rate term structure is usually studied either from the static or dynamic point of view. Static models deal with a snapshot of the market and estimate a single zero-coupon yield curve. Static models are usually further divided into parametric (e.g. Nelson-Siegel) or non-parametric (e.g. smoothing splines) methods. A good overview of static term structure fitting methods can be found in the paper by \cite{chapman2001recent}. Dynamic methods specify the stochastic dynamics of either the short rate or the entire zero-coupon yield curve. Model parameters are then estimated from the data. The literature on dynamic term structure models is abundant, however the original Smith-Wilson method (SW) is static. \cite{Lager,Andersson_Lindholm} show that there is a dynamic model resulting in the same snapshot zero-coupon yield curve, thus drawing parallels to the world of stochastic interest rate models.
+
+\cite{kocken2012dangerous} propose a simple solution to lower the volatility of the long end of the curve based on the static problem formulation. We use the dynamic formulation and the results of \cite{kennedy1994term,goldstein2000term} viewing the forward rate as a Gaussian random field.
+
+\section{The Smith-Wilson model and its stochastic extension}
+The original Smith-Wilson model describes the discount function as central tendency with the asymptotic rate $f_{\infty}$ and the deviation from it:
+$$
+D(t)=e^{-f_{\infty}t}(1+H(t,u)Qb),
+$$
+where $H(t,u)$ is a matrix Wilson kernel $H(x,y)_{i,j}=\alpha(x_i\wedge y_j) - e^{-\alpha(x_i\vee y_j)}\sinh(\alpha(x_i\wedge y_j))$, $u$ is the vector of terms to maturity of the observed market instruments, $Q$ is some matrix incorporating their cash flows, and $b$ includes the cash flows and the observed prices. $\alpha$ is a tuning parameter regulating the speed of convergence to the ultimate forward rate $f_{\infty}$.
+
+This function is known to minimize the following functional:
+$$
+J_{SW}\big[D(\cdot)\big] = 
+\frac{1}{\alpha^3}
+\int\limits_0^\infty 
+\left(
+\frac{d^2}{dt^2}
+\left[
+e^{f_\infty t} D(t)
+\right]
+\right)^2
+\, dt
++
+\frac{1}{\alpha}
+\int\limits_0^\infty 
+\left(
+\frac{d}{dt}
+\left[
+e^{f_\infty t} D(t)
+\right]
+\right)^2
+\, dt 
+$$
+subject to exactly replicating the observed instrument prices. %Moreover, the same term structure approximately minimizes
+%$$
+%\frac{1}{\alpha^3}
+%\int\limits_0^\infty 
+%\Bigl(
+%\frac{d}{dt}
+%f(t)
+%\Bigr)^2
+%\, dt
+%+
+%\frac{1}{\alpha}
+%\int\limits_0^\infty 
+%\Bigl(
+%f_\infty - f(t)
+%\Bigr)^2
+%\, dt
+%$$
+under the same constraints. This illustrates that $\alpha$ not only as regulating the speed of convergence to $f_\infty$, but also as the regularization parameter (see the first term).
+
+As to the stochastic formulation, \cite{Andersson_Lindholm, Lager} show that if
+\begin{eqnarray*}
+dF &=& -\alpha F\,dt + \alpha^{3/2}\, dW\\
+F_0 &\sim& N(0, \alpha^2)\\
+dX &=& F \,dt\\
+Z &=& e^{-f_\infty t}(1 + X),
+\end{eqnarray*}
+then the Smith-Wilson discount function $D(t)=E\left(Z(t)\big|Z(t_i) = D(t_i);i=1..N\right)$. They note that the suggested process $F$ is not stationary (in order for it to be stationary, $F_0$ must be $\sim N(0;\alpha^2/2)$).
+
+\section{Sensitivity of Smith-Wilson estimates}
+We study the sensitivity of term structure estimates to small perturbations in the observed instrument prices. We consider two cases: instruments are either coupon-bearing bonds or interest rate swaps.
+
+We estimate the norm of the term structure estimation operator $SW(\pi)$, where $\pi$ is the vector of observed instrument prices and $SW(\pi)$ is the estimated term structure belonging to some subspace of $C[0,\infty)$:
+$$
+\max\limits_{\|\Delta\pi\|\leq \delta}\left\|\Delta SW(\pi)\right\|,
+$$
+where different choices of the norms $\|\Delta\pi\|$ and $\|\Delta SW\|$ produce different financial interpretations. For example, $\|\Delta\pi\|=\|\Delta\pi\|_\infty$ and $\|\Delta SW\|=\|\Delta f\|_\infty$ describe the maximum point sensitivity of the forward rate $f$ to small changes in the observed prices. We also study other norms corresponding to sensible financial formulations. We also study the sensitivity from the practical point of view -- we price an annuity payment using the estimated term structure and consider the volatility of its present value.
+
+\section{Regularization}
+After we show that the sensitivity of SW estimates to fluctuations in the data, we regularize the initial problem using the Tikhonov principle \cite{Tikhonov}. Roughly, it states that the fitting error should be of the same order of magnitude than the observation error. Unfortunately, we don't know the observation error. However, a reasonable proxy for it is half the bid-ask spread for the instruments in question.
+
+The new functional to be minimized is
+$$
+J_{SW[D(\cdot)]} + \frac1\lambda J_R[\pi-\pi_0],
+$$
+where $\pi-\pi_0$ is the discrepancy between the observed prices $\pi_0$ and the fitted prices $\pi$, $J_R[x]$ is a regularizing functional, and $\lambda$ is another regularization parameter.
+
+We consider two regularizing functionals: 
+$$
+J_R^{soft}[x]=\sum\left(\frac{2x_i}{s_i}\right)^2,
+$$
+where $s_i$ is the observed bid-ask spread for the instrument $i$, and
+$$
+J_R^{hard}[x]=\max\left|\frac{x_i}{s_i}\right|.
+$$
+
+We also investigate numerical methods for solving these regularized problems for coupon bonds and swaps. The `hard' regularization turns out to be extremely sensitive to the quality of the bid-ask spread data, so we discard it.
+
+\subsection{Choosing the regularization parameter}
+We also discuss the choice of our new regularization parameter $\lambda$. The other regularization parameter $\alpha$ is specified by EIOPA and is  a part of the original methodology. We compare several most popular methods for choosing the regularization parameter and back-test these methods using the real data. The resulting estimates still show excessive volatility. It turns out that it is virtually impossible to sensibly estimate the regularization parameter within a single market snapshot. Therefore, to consistently estimate the term structure we have to turn to the temporal dimension of the model. However, if we have to resort to dynamics for parameter estimation, we might as well use the same data to improve our estimate of the term structure. Thus we arrive at the need for a fully-fledged dynamic model, which follows in the next section.
+
+\section{Dynamic model}
+Consider a Gaussian random field model after \cite{kennedy1994term,goldstein2000term}:
+$$
+dF_s(t) = \alpha(f_\infty - F_s(t))\,dt + \sigma\, dW_s(t),
+$$
+where $W_s(t)$ is a standard Gaussian field, $F_s(t)$ is the forward rate effective on date $s$ for date $t\geq s$. It can be solved subject to stationarity conditions to yield
+\begin{eqnarray}
+EF_s(t)&=&f_\infty;\\
+\mathrm{cov}\left(F_{s_1}(t_1),F_{s_2}(t_2)\right)&=&\frac{\sigma^2}{2\alpha}(s_1\wedge s_2)e^{-\alpha|t_1-t_2|}.
+\end{eqnarray}
+Note that the original SW model corresponds to the nonstationary solution with
+$$
+\mathrm{cov}\left(F_{s_1}(0),F_{s_2}(0)\right)=\frac{\sigma^2}{\alpha}(s_1\wedge s_2).
+$$
+and the SW kernel. Instead we consider a stationary model.
+Next we find the discount function $D_s(t)$ for the new stationary model and linearize it around the long-term discount function $D^0_s(t)=e^{-f_\infty(t-s)}$. This linearization allows us to use the Kalman filter to estimate the model. It also allows us to get the equivalence result linking the stationary model to the snapshot functional minimization problem.
+
+Using the Kalman filter, we derive standard closed-form expressions for estimating $D_{s_2}(t)$ and its kernel $R_{s_2}(t_1,t_2)$ with known $D_{s_1}(t)$ and its kernel $R_{s_1}(t_1,t_2)$.
+
+Moreover, for the particular case with only one observation moment $s$ (equivalent to the snapshot case) we get an equation similar to the regularized SW model with the SW kernel $H(u,v)$ replaced with the modified SW kernel $Z(u,v)=H(u,v)-\frac12(1-e^{-\alpha u})(1-e^{-\alpha v})$ and $\lambda=\alpha^3\sigma^{-2}s^{-1}$. In the model, the parameter $\sigma$ is estimated from the data via maximum likelihood and then considered constant together with $f_\infty$ and $\alpha$.
+
+Moreover, the original SW functional $J_{SW}[D]$ can be modified so that its optimal $D(\cdot)$ be equivalent to the new stationary dynamic model instead of the old non-stationary:
+
+$$
+J_{Z}\big[D(\cdot)\big] = J_{SW}\big[D(\cdot)\big]
++
+\frac{1}{\alpha^2}
+\left(
+\left. \frac{d}{dt}\left[e^{f_\infty t}D(t)\right]\right|_{t=0}
+\right)^2.
+$$
+The only difference is the new term penalizing the excess variability of the short end of the discount function.
+
+This new dynamic term structure model uses the previous values and estimates not only the today's term structure, but also the precision (variance) of this estimate, which is a very nice feature in financial applications.
+
+\section{Final results and conclusion}
+We propose three generalizations to the original Smith-Wilson model: 1) accounting for observation errors in instrument prices; 2) introducing the dynamic regularized model and using the Kalman filter for its estimation; 3) converting the dynamic model from non-stationary to stationary -- this is simply a theoretical niceness.
+
+While the first modification should be sufficient for the snapshot use, it leaves the question of estimating the regularization parameter (the signal to noise ratio), which still should be estimated from historical data.
+
+However, with historical data a full dynamic model is preferrable. We describe the dynamic model and the algorithm for its estimation. The dynamic model can also be used to estimate the regularization parameter for the static model, because the static model is a particular case when there is only one observation. However, this would mean discarding most of the historical information for estimation.
+
+We test our models on the real data for Eurozone coupon bonds and interest rate swaps and find that the robustness of the estimate in terms of forward rates is greatly improved with relatively mild changes to the estimate itself.
+
+From the practical point of view, we propose a stable modification of the Smith-Wilson method. Theoretically, our modification provides additional insight to the nature of the Smith-Wilson model and provides a comprehensive framework linking together its various parts.
+
+\begin{thebibliography}{99}
+\bibitem{Smith_Wilson}
+Wilson~T. Smith~A.
+\newblock Fitting yield curves with long term constraints.
+\newblock 2001.
+\newblock Research Notes.
+
+\bibitem{Hibbert}
+John Hibbert.
+\newblock Yield curve extrapolation: work in progress, 5 2013.
+\newblock Moody's Analytics Research.
+
+\bibitem{kocken2012dangerous}
+Theo Kocken, Bart Oldenkamp, and Joeri Potters.
+\newblock Dangerous design flaws in the ultimate forward rate: The impact on
+risk, stakeholders and hedging costs.
+\newblock {\em Cardano Paper}, 7, 2012.
+
+\bibitem{chapman2001recent}
+David~A Chapman and Neil~D Pearson.
+\newblock Recent advances in estimating term-structure models.
+\newblock {\em Financial Analysts Journal}, pages 77--95, 2001.
+
+\bibitem{Lager}
+Andreas Lager\r{a}s.
+\newblock How to hedge extrapolated yield curves.
+\newblock 2014.
+\newblock ISSN 1650-0377.
+
+\bibitem{Andersson_Lindholm}
+Mathias~Lindholm H\r{a}kan~Andersson.
+\newblock On the relation between the {S}mith--{W}ilson method and integrated
+{O}rnstein--{U}hlenbeck processes.
+\newblock 2013.
+\newblock ISSN 1650-0377.
+
+\bibitem{kennedy1994term}
+Douglas~P Kennedy.
+\newblock The term structure of interest rates as a gaussian random field.
+\newblock {\em Mathematical Finance}, 4(3):247--258, 1994.
+
+\bibitem{goldstein2000term}
+Robert~S Goldstein.
+\newblock The term structure of interest rates as a random field.
+\newblock {\em Review of Financial Studies}, 13(2):365--384, 2000.
+
+\bibitem{Tikhonov}
+Tikhonov A, Arsenin V (1977)
+\newblock {Solution of Ill-Posed Problems}.
+\newblock Winston\&Sons, Washington, DC
+\end{thebibliography}
+
+\end{document}

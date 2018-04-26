@@ -1,0 +1,93 @@
+\documentclass[12pt, a4paper]{article}
+	
+	%Graphics
+	\usepackage{graphicx,color}
+
+	% Encoding and fonts
+	\usepackage[cp1251]{inputenc}	   	
+	\usepackage[T1,T2A]{fontenc}		
+	\usepackage[russian, english]{babel}	
+	
+	% Page Layout and Text Formation
+	\usepackage[top=2cm, bottom=2cm, left=3cm, right=1cm]{geometry} % BRP WP Format
+	\usepackage{titlesec}
+	\usepackage{xcolor}
+	\usepackage{enumerate}
+	\usepackage[titletoc,title]{appendix}
+	\usepackage{color}
+	\usepackage{setspace}
+			\onehalfspacing
+
+	% Mathematical symbols and operators 
+	\usepackage{mathtools}
+	\usepackage{amssymb}
+	\usepackage{amsthm}
+	
+	% Figures and Tables
+%	\usepackage{subcaption}
+%		\addto\captionsenglish{\renewcommand{\figurename}{Fig.}}
+%		\addto\captionsenglish{\renewcommand{\tablename}{Tab.}}
+	\usepackage{subfig}
+	\usepackage{epstopdf}
+	\usepackage{float}
+		\floatstyle{plaintop}
+		\restylefloat{table}
+
+	% Bibliography 
+	\usepackage{natbib}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+
+\begin{document}
+
+\begin{titlepage}
+	\thispagestyle{empty}
+
+\begin{center}
+{\fontsize{14}{16.8}\selectfont \it Authors \footnote{\fontsize{9}{10.8} \selectfont National Research University Higher School of Economics. Laboratory for Financial Engineering and Risk Management, Position; E-mail: .....@hse.ru}}
+\bigskip
+
+{\fontsize{16}{20.736}\selectfont \bfseries TITLE}
+\footnote{\fontsize{9}{10.8} \selectfont Study was implemented ....}
+
+\end{center}
+
+%\sloppy
+\noindent Abstract goes here..
+\bigskip
+
+\noindent JEL Classification: ...
+\bigskip
+
+\noindent Key words: ....
+\end{titlepage}
+
+%%%% BODY %%%%
+
+\setcounter{page}{3}
+
+ \input{./sections/intro.tex}	
+
+%\input{./sections/data.tex}
+
+%%%% LAST PAGE %%%%%
+
+\pagebreak
+
+\noindent Authors:
+
+\noindent First/Last names, National Research University Higher School of Economics (Moscow, Russia). Laboratory for Financial Engineering and Risk Management. Position;
+
+\noindent E-mail: .... @hse.ru
+\bigskip
+
+\noindent {\bfseries Any opinions or claims contained in this Working Paper do not necessarily reflect the views of HSE.
+\bigskip
+
+\noindent \copyright Author, 2017
+}
+
+%%%% BIBLIOGRAPHY %%%%
+\bibliographystyle{apalike}
+
+\end{document}
